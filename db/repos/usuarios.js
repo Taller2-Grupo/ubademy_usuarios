@@ -8,7 +8,7 @@ class UsuariosRepository {
 
     // Adds a new user, and returns the new object;
     async add(username, password, nombre, apellido, esAdmin) {
-        return this.db.one(sql.add, username, password, nombre, apellido, esAdmin);
+        return this.db.one(sql.add, [username, password, nombre, apellido, esAdmin]);
     }
 
     // Tries to find a user from id;

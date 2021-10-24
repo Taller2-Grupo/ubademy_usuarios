@@ -19,9 +19,21 @@ module.exports.setup = (app) => {
      *                    type: object
      *                    required:
      *                        - username
+     *                        - password
+     *                        - nombre
+     *                        - apellido
+     *                        - esAdmin
      *                    properties:
      *                        username:
      *                            type: string
+     *                        password:
+     *                            type: string
+     *                        nombre:
+     *                            type: string
+     *                        apellido:
+     *                            type: string
+     *                        esAdmin:
+     *                            type: boolean
      *      responses:
      *          201:
      *              description: Devuelve el usuario creado
@@ -31,13 +43,35 @@ module.exports.setup = (app) => {
 
         console.log(body)
 
+        // try {
+        //     nuevoUsuario = await db.usuarios.add(body.username, body.password, body.nombre, body.apellido, body.esAdmin)
+        //     res.send(nuevoUsuario)
+        // } catch (error) {
+        //     res.json({
+        //         success: false,
+        //         error: error.message || error
+        //     });
+        // }
+
+        db.usuarios.add(body.username, body.password, body.nombre, body.apellido, body.esAdmin)
+            .then(function(nuevoUsuario) {
+                res.json(nuevoUsuario)
+            })
+            .catch(function (error){
+                res.json({
+                    success: false,
+                    error: error.message || error
+                });
+            })
+
+        
         // db.users.add()
         //     .then(function (data) {
         //     res.send('DATA:' + data.value)        
         //     })
         //     .catch(function (error) {
         //     console.log('ERROR:', error)
-        //     })    
+        //     })
     })
 
     /**
@@ -49,7 +83,7 @@ module.exports.setup = (app) => {
      *       200:
      *         description: Devuelve el usuario encontrado
      */
-    GET('/usuarios/:username', req => db.users.findByUsername(req.params.username))
+    GET('/usuarios/:username', req => db.usuarios.findByUsername(req.params.username))
 
     /**
      * @openapi
