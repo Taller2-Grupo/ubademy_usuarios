@@ -3,53 +3,64 @@ const {db} = require('./db');
 module.exports.setup = (app) => {
     /**
      * @openapi
-     * /:
+     * /usuarios/add:
+     *    post:
+     *      description: Crea un usuario
+     *      consumes:
+     *          - application/json
+     *      produces:
+     *          - application/json
+     *      requestBody:
+     *          description: Usuario a crear
+     *          required: true
+     *          content:
+     *            application/json:
+     *                schema:
+     *                    type: object
+     *                    required:
+     *                        - username
+     *                    properties:
+     *                        username:
+     *                            type: string
+     *      responses:
+     *          201:
+     *              description: Devuelve el usuario creado
+     */
+    app.post('/usuarios/add', (req, res) => {
+        body = req.body;
+
+        console.log(body)
+
+        // db.users.add()
+        //     .then(function (data) {
+        //     res.send('DATA:' + data.value)        
+        //     })
+        //     .catch(function (error) {
+        //     console.log('ERROR:', error)
+        //     })    
+    })
+
+    /**
+     * @openapi
+     * /usuarios/:username:
      *   get:
-     *     description: Prueba temporaria de base de datos
+     *     description: Obtiene usuario por username
      *     responses:
      *       200:
-     *         description: Devuelve DATA 123
+     *         description: Devuelve el usuario encontrado
      */
-    app.get('/', (req, res) => {
-        var pgp = require('pg-promise')(/* options */)
-        var db = pgp('postgresql://postgres:postgres@localhost/postgres')
-        
-        db.one('SELECT $1 AS value', 123)
-        .then(function (data) {
-            res.send('DATA:' + data.value)        
-        })
-        .catch(function (error) {
-            console.log('ERROR:', error)
-        })    
-    })
+    GET('/usuarios/:username', req => db.users.findByUsername(req.params.username))
 
-    app.get('/usuario/:username', (req, res) => {
-        var pgp = require('pg-promise')(/* options */)
-        var db = pgp('postgresql://postgres:postgres@localhost/postgres')
-        
-        db.one('SELECT * FROM usuarios WHERE username == $1', req.params.username)
-          .then(function (data) {
-            res.send('DATA:' + data.value)        
-          })
-          .catch(function (error) {
-            console.log('ERROR:', error)
-          })    
-      })
-      
-    app.post('/usuario', (req, res) => {
-    var pgp = require('pg-promise')(/* options */)
-    var db = pgp('postgresql://postgres:postgres@localhost/postgres')
-    
-    db.one('SELECT * FROM usuarios WHERE username == $1', req.params.username)
-        .then(function (data) {
-        res.send('DATA:' + data.value)        
-        })
-        .catch(function (error) {
-        console.log('ERROR:', error)
-        })    
-    })
-
-    GET('/usuarios', () => db.usuarios.total())
+    /**
+     * @openapi
+     * /usuarios:
+     *   get:
+     *     description: Obtiene todos los usuarios
+     *     responses:
+     *       200:
+     *         description: Devuelve todos los usuarios
+     */
+    GET('/usuarios', () => db.usuarios.all())
 
     // Generic GET handler;
     function GET(url, handler) {

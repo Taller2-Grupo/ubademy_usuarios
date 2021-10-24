@@ -25,11 +25,6 @@ class UsuariosRepository {
     async all() {
         return this.db.any('SELECT * FROM usuarios');
     }
-
-    // Returns the total number of users;
-    async total() {
-        return this.db.one('SELECT count(*) FROM usuarios', [], a => +a.count);
-    }
 }
 
 module.exports = UsuariosRepository;
