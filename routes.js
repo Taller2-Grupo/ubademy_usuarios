@@ -43,16 +43,6 @@ module.exports.setup = (app) => {
 
         console.log(body)
 
-        // try {
-        //     nuevoUsuario = await db.usuarios.add(body.username, body.password, body.nombre, body.apellido, body.esAdmin)
-        //     res.send(nuevoUsuario)
-        // } catch (error) {
-        //     res.json({
-        //         success: false,
-        //         error: error.message || error
-        //     });
-        // }
-
         db.usuarios.add(body.username, body.password, body.nombre, body.apellido, body.esAdmin)
             .then(function(nuevoUsuario) {
                 res.json(nuevoUsuario)
@@ -63,15 +53,6 @@ module.exports.setup = (app) => {
                     error: error.message || error
                 });
             })
-
-        
-        // db.users.add()
-        //     .then(function (data) {
-        //     res.send('DATA:' + data.value)        
-        //     })
-        //     .catch(function (error) {
-        //     console.log('ERROR:', error)
-        //     })
     })
 
     /**
