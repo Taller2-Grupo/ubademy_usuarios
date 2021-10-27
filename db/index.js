@@ -25,7 +25,7 @@ const pgp = pgPromise(initOptions);
 
 // Creating the database instance:
 //const db = pgp('postgresql://postgres:postgres@localhost/postgres');
-const db = pgp('postgres://lfnthgmtoghotx:4733d9c66bf50864c899e412deb8b9b16167b899dd194f26b6653798d50d6c16@ec2-3-209-65-193.compute-1.amazonaws.com:5432/d5af894db3sfi0?sslmode=require');
+const db = pgp('postgresql://lfnthgmtoghotx:4733d9c66bf50864c899e412deb8b9b16167b899dd194f26b6653798d50d6c16@ec2-3-209-65-193.compute-1.amazonaws.com:5432/d5af894db3sfi0?sslmode=require');
 
 // Alternatively, you can get access to pgp via db.$config.pgp
 // See: https://vitaly-t.github.io/pg-promise/Database.html#$config
