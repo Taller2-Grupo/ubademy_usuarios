@@ -3,6 +3,10 @@ const promise = require('bluebird'); // best promise library today
 const pgPromise = require('pg-promise'); // pg-promise core library
 const {Usuarios} = require('./repos');
 
+pgPromise.pg.defaults.ssl = {
+    rejectUnauthorized: false
+}
+
 // pg-promise initialization options:
 const initOptions = {
 
