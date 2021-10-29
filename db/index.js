@@ -3,10 +3,6 @@ const promise = require('bluebird'); // best promise library today
 const pgPromise = require('pg-promise'); // pg-promise core library
 const {Usuarios} = require('./repos');
 
-pgPromise.pg.defaults.ssl = {
-    rejectUnauthorized: false
-}
-
 // pg-promise initialization options:
 const initOptions = {
 
@@ -27,6 +23,9 @@ const initOptions = {
 // Initializing the library:
 const pgp = pgPromise(initOptions);
 
+pgp.pg.defaults.ssl = {
+    rejectUnauthorized: false
+}
 
 // Creating the database instance:
 //const db = pgp('postgresql://postgres:postgres@localhost/postgres');
