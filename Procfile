@@ -1,2 +1,2 @@
-release: npm run migrate up -- -d=REAL_DATABASE_URL --reject-unauthorized=false
+release: npm run migrate up -- --reject-unauthorized=false
 web: node index.js
