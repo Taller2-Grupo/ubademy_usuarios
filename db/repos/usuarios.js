@@ -25,6 +25,10 @@ class UsuariosRepository {
     async all() {
         return this.db.any('SELECT * FROM usuarios');
     }
+
+    async update(username, nombre, apellido) {
+        return this.db.one(sql.update, [username, nombre, apellido]);
+    }
 }
 
 module.exports = UsuariosRepository;

@@ -77,6 +77,54 @@ module.exports.setup = (app) => {
      */
     GET('/usuarios', () => db.usuarios.all())
 
+    /**
+     * @openapi
+     * /usuarios/update:
+     *    patch:
+     *      description: Actualiza un usuario
+     *      consumes:
+     *          - application/json
+     *      produces:
+     *          - application/json
+     *      requestBody:
+     *          description: Usuario a actualizar
+     *          required: true
+     *          content:
+     *            application/json:
+     *                schema:
+     *                    type: object
+     *                    required:
+     *                        - username
+     *                        - nombre
+     *                        - apellido
+     *                    properties:
+     *                        username:
+     *                            type: string     
+     *                        nombre:
+     *                            type: string
+     *                        apellido:
+     *                            type: string     
+     *      responses:
+     *          200:
+     *              description: Devuelve el usuario actualizado
+     */
+     app.patch('/usuarios/update', (req, res) => {
+        body = req.body;
+
+        console.log(body)
+
+        db.usuarios.update(body.username, body.nombre, body.apellido)
+            .then(function(usuarioActualizado) {
+                res.json(usuarioActualizado)
+            })
+            .catch(function (error){
+                res.json({
+                    success: false,
+                    error: error.message || error
+                });
+            })
+    })
+
     // Generic GET handler;
     function GET(url, handler) {
         app.get(url, async (req, res) => {
