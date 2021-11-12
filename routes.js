@@ -57,9 +57,15 @@ module.exports.setup = (app) => {
 
     /**
      * @openapi
-     * /usuarios/:username:
+     * /usuarios/{username}:
      *   get:
      *     description: Obtiene usuario por username
+     *     parameters:
+     *         - in: path
+     *           name: username
+     *           schema:
+     *              type: string
+     *           required: true
      *     responses:
      *       200:
      *         description: Devuelve el usuario encontrado
