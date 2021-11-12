@@ -1,6 +1,6 @@
-const routes = require('./routes');
+const routes = require('./routes')
 const express = require('express')
-var cors = require('cors')
+const cors = require('cors')
 const app = express()
 const port = process.env.PORT || 3000
 const swaggerJsdoc = require('swagger-jsdoc')
@@ -11,20 +11,20 @@ const options = {
     openapi: '3.0.0',
     info: {
       title: 'API Usuarios',
-      version: '1.0.0',
-    },
+      version: '1.0.0'
+    }
   },
-  apis: ['routes.js'], // files containing annotations
-};
+  apis: ['routes.js'] // files containing annotations
+}
 
-const openapiSpecification = swaggerJsdoc(options);
+const openapiSpecification = swaggerJsdoc(options)
 app.use('/docs', swaggerUI.serve, swaggerUI.setup(openapiSpecification))
 
-app.use(express.json());
+app.use(express.json())
 
 app.use(cors())
 
-routes.setup(app);
+routes.setup(app)
 
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`)

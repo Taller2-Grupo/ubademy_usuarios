@@ -4,19 +4,29 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"No tests yet\" && exit 0",
+    "dev": "nodemon index.js",
+    "lint": "standard",
+    "start": "node index.js",
+    "test": "standard && exit 0",
     "migrate": "node-pg-migrate"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "bluebird": "^3.7.2",
-    "cors": "^2.8.5",
-    "express": "^4.17.1",
-    "node-pg-migrate": "^6.0.0",
-    "pg": "^8.7.1",
-    "pg-promise": "^10.11.1",
-    "swagger-jsdoc": "^6.1.0",
-    "swagger-ui-express": "^4.1.6"
+    "bluebird": "3.7.2",
+    "cors": "2.8.5",
+    "express": "4.17.1",
+    "node-pg-migrate": "6.0.0",
+    "pg": "8.7.1",
+    "pg-promise": "10.11.1",
+    "swagger-jsdoc": "6.1.0",
+    "swagger-ui-express": "4.1.6"
+  },
+  "devDependencies": {
+    "nodemon": "2.0.15",
+    "standard": "16.0.4"
+  },
+  "eslintConfig": {
+    "extends": "./node_modules/standard/eslintrc.json"
   }
 }
