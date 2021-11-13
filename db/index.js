@@ -1,14 +1,11 @@
-// const promise = require('bluebird'); // best promise library today
-const promise = require('bluebird') // best promise library today
-const pgPromise = require('pg-promise') // pg-promise core library
+const promise = require('bluebird')
+const pgPromise = require('pg-promise')
 const { Usuarios } = require('./repos')
 
-// pg-promise initialization options:
+const connectionString = process.env.DATABASE_URL
+
 const initOptions = {
-
-  // Use a custom promise library, instead of the default ES6 Promise:
   promiseLib: promise,
-
   // Extending the database protocol with our custom repositories;
   // API: http://vitaly-t.github.io/pg-promise/global.html#event:extend
   extend (obj, dc) {
@@ -20,17 +17,14 @@ const initOptions = {
   }
 }
 
-// Initializing the library:
 const pgp = pgPromise(initOptions)
 
-pgp.pg.defaults.ssl = {
-  rejectUnauthorized: false
+if (process.env.NODE_ENV === 'production') {
+  pgp.pg.defaults.ssl = {
+    rejectUnauthorized: false
+  }
 }
 
-// Creating the database instance:
-// const db = pgp('postgresql://postgres:postgres@localhost/postgres');
-const db = pgp('postgres://lfnthgmtoghotx:4733d9c66bf50864c899e412deb8b9b16167b899dd194f26b6653798d50d6c16@ec2-3-209-65-193.compute-1.amazonaws.com:5432/d5af894db3sfi0')
+const db = pgp(connectionString)
 
-// Alternatively, you can get access to pgp via db.$config.pgp
-// See: https://vitaly-t.github.io/pg-promise/Database.html#$config
 module.exports = { db, pgp }

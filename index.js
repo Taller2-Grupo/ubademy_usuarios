@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 const routes = require('./routes')
 const express = require('express')
 const cors = require('cors')
@@ -26,6 +28,8 @@ app.use(cors())
 
 routes.setup(app)
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`)
 })
+
+module.exports = { app, server }
