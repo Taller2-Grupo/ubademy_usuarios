@@ -7,6 +7,7 @@ const app = express()
 const port = process.env.PORT || 3000
 const swaggerJsdoc = require('swagger-jsdoc')
 const swaggerUI = require('swagger-ui-express')
+const { db } = require('./db')
 
 const options = {
   definition: {
@@ -26,7 +27,7 @@ app.use(express.json())
 
 app.use(cors())
 
-routes.setup(app)
+routes.setup(app, db)
 
 const server = app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`)

@@ -1,6 +1,4 @@
-const { db } = require('./db')
-
-module.exports.setup = (app) => {
+module.exports.setup = (app, db) => {
   /**
    * @openapi
    * /usuarios/add:
