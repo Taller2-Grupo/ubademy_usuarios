@@ -1,6 +1,6 @@
-const { db } = require('./db')
+const { validateEmail } = require('./utils')
 
-module.exports.setup = (app) => {
+module.exports.setup = (app, db) => {
   /**
    * @openapi
    * /usuarios/add:
@@ -38,21 +38,35 @@ module.exports.setup = (app) => {
    *          201:
    *              description: Devuelve el usuario creado
    */
-  app.post('/usuarios/add', (req, res) => {
+  app.post('/usuarios/add', async (req, res) => {
     const body = req.body
 
-    console.log(body)
+    if (!body.username || !body.password || !body.nombre || !body.apellido || typeof body.esAdmin === 'undefined') {
+      return res.status(400).json({
+        success: false,
+        error: 'Body incompleto.'
+      })
+    }
 
-    db.usuarios.add(body.username, body.password, body.nombre, body.apellido, body.esAdmin)
-      .then(function (nuevoUsuario) {
-        res.json(nuevoUsuario)
+    if (!validateEmail(body.username)) {
+      return res.status(400).json({
+        success: false,
+        error: 'El username debe ser un mail.'
       })
-      .catch(function (error) {
-        res.json({
-          success: false,
-          error: error.message || error
-        })
+    }
+
+    try {
+      const data = await db.usuarios.add(body.username, body.password, body.nombre, body.apellido, body.esAdmin)
+      res.json({
+        success: true,
+        data
       })
+    } catch (error) {
+      res.json({
+        success: false,
+        error: error.message || error
+      })
+    }
   })
 
   /**

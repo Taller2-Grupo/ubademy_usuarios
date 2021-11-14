@@ -1,16 +1,51 @@
+const { describe } = require('jest-circus')
 const supertest = require('supertest')
-const { app, server } = require('../index')
-const { pgp } = require('../db/index')
+const { buildApp } = require('../app')
 
-const api = supertest(app)
+// Setup:
+const db = jest.fn()
+const api = supertest(buildApp(db))
 
-test('GET a /usuarios devuelve 200 siempre.', async () => {
-  await api
-    .get('/usuarios')
-    .expect(200)
+describe('Get a /usuarios', () => {
+  test('devuelve 200 siempre.', async () => {
+    await api
+      .get('/usuarios')
+      .expect(200)
+  })
 })
 
-afterAll(() => {
-  server.close()
-  pgp.end()
+describe('Post a /usuarios/add', () => {
+  test('devuelve 400 sin body.', async () => {
+    await api
+      .post('/usuarios/add')
+      .expect(400)
+  })
+
+  test('devuelve 400 si el username no es un mail.', async () => {
+    await api
+      .post('/usuarios/add')
+      .send({
+        username: 'test',
+        password: 'test',
+        nombre: 'test',
+        apellido: 'test',
+        esAdmin: false
+      })
+      .expect(400)
+  })
+
+  test('devuelve 200 con body completado correctamente.', async () => {
+    await api
+      .post('/usuarios/add')
+      .send({
+        username: 'test@test.com',
+        password: 'test',
+        nombre: 'test',
+        apellido: 'test',
+        esAdmin: false
+      })
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .expect(200)
+  })
 })
