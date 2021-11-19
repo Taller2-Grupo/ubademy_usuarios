@@ -97,7 +97,7 @@ module.exports.setup = (app, db) => {
 
       res.json({
         success: true,
-        user
+        data: user
       })
     } catch (error) {
       res.json({
