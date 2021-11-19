@@ -84,7 +84,28 @@ module.exports.setup = (app, db) => {
    *       200:
    *         description: Devuelve el usuario encontrado
    */
-  GET('/usuarios/:username', req => db.usuarios.findByUsername(req.params.username))
+  app.get('/usuarios/:username', async (req, res) => {
+    try {
+      const user = await db.usuarios.findByUsername(req.params.username)
+
+      if (user === null) {
+        return res.status(404).json({
+          success: false,
+          error: 'Usuario no encontrado.'
+        })
+      }
+
+      res.json({
+        success: true,
+        user
+      })
+    } catch (error) {
+      res.json({
+        success: false,
+        error: error.message || error
+      })
+    }
+  })
 
   /**
    * @openapi

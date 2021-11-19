@@ -14,6 +14,14 @@ describe('Get a /usuarios', () => {
   })
 })
 
+describe('Get a /usuarios/username', () => {
+  test('devuelve 200 cuando existe el usuario.', async () => {
+    await api
+      .get('/usuarios/string')
+      .expect(200)
+  })
+})
+
 describe('Post a /usuarios/add', () => {
   test('devuelve 400 sin body.', async () => {
     await api
