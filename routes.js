@@ -1,4 +1,5 @@
 const { validateEmail } = require('./utils')
+const { apiKeyIsValid } = require('./auth')
 
 module.exports.setup = (app, db) => {
   /**
@@ -39,6 +40,15 @@ module.exports.setup = (app, db) => {
    *              description: Devuelve el usuario creado
    */
   app.post('/usuarios/add', async (req, res) => {
+    const headerApiKey = req.get('X-API-KEY')
+
+    if (!apiKeyIsValid(headerApiKey)) {
+      return res.status(401).json({
+        success: false,
+        error: 'API Key invalida'
+      })
+    }
+
     const body = req.body
 
     if (!body.username || !body.password || !body.nombre || !body.apellido || typeof body.esAdmin === 'undefined') {
@@ -85,6 +95,15 @@ module.exports.setup = (app, db) => {
    *         description: Devuelve el usuario encontrado
    */
   app.get('/usuarios/:username', async (req, res) => {
+    const headerApiKey = req.get('X-API-KEY')
+
+    if (!apiKeyIsValid(headerApiKey)) {
+      return res.status(401).json({
+        success: false,
+        error: 'API Key invalida'
+      })
+    }
+
     try {
       const user = await db.usuarios.findByUsername(req.params.username)
 
@@ -150,6 +169,15 @@ module.exports.setup = (app, db) => {
    *              description: Devuelve el usuario actualizado
    */
   app.patch('/usuarios/update', (req, res) => {
+    const headerApiKey = req.get('X-API-KEY')
+
+    if (!apiKeyIsValid(headerApiKey)) {
+      return res.status(401).json({
+        success: false,
+        error: 'API Key invalida'
+      })
+    }
+
     const body = req.body
 
     console.log(body)
@@ -169,6 +197,15 @@ module.exports.setup = (app, db) => {
   // Generic GET handler;
   function GET (url, handler) {
     app.get(url, async (req, res) => {
+      const headerApiKey = req.get('X-API-KEY')
+
+      if (!apiKeyIsValid(headerApiKey)) {
+        return res.status(401).json({
+          success: false,
+          error: 'API Key invalida'
+        })
+      }
+
       try {
         const data = await handler(req)
         res.json({
