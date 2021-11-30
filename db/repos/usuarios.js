@@ -29,6 +29,22 @@ class UsuariosRepository {
   async update (username, nombre, apellido) {
     return this.db.one(sql.update, [username, nombre, apellido])
   }
+
+  async addDevice (username, device) {
+    return this.db.one(sql.add_device, [username, device])
+  }
+
+  async deleteDevice (device) {
+    return this.db.oneOrNone('DELETE FROM devices WHERE id = $1', device)
+  }
+
+  async getDevice (device) {
+    return this.db.oneOrNone('SELECT * FROM "devices" WHERE "id" = $1', device)
+  }
+
+  async getDevicesFromUser (username) {
+    return this.db.manyOrNone('SELECT "id" FROM "devices" WHERE "username" = $1', username)
+  }
 }
 
 module.exports = UsuariosRepository

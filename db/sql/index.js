@@ -19,7 +19,8 @@ const { join: joinPath } = require('path')
 module.exports = {
   usuarios: {
     add: sql('usuarios/add.sql'),
-    update: sql('usuarios/update.sql')
+    update: sql('usuarios/update.sql'),
+    add_device: sql('usuarios/add_device.sql')
   }
 }
 
