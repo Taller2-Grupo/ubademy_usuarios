@@ -376,7 +376,7 @@ module.exports.setup = (app, db) => {
     }
 
     try {
-      const devices = await db.usuarios.getDevicesFromUser(req.params.username)
+      const devices = await db.usuarios.getDevicesFromUser(req.body.username)
 
       if (devices === null) {
         return res.status(404).json({
@@ -388,7 +388,7 @@ module.exports.setup = (app, db) => {
       const notificador = require('node-gcm')
       const sender = notificador.Sender('AAAAzalzT_s:APA91bFtIbR8YlWZ61WG9i09D_pPz7dLUZThRykja_mp1CTqD6a6x' +
         'Rjp7O-PX4ThjgJQQDqkPX9gWw6NMsEvyop9Sf-bvmki7UXcixbLjGhRKLi8VuUv7Tckgq7d8GgUrySAd4L7oIU-')
-      const message = new notificador.Message({ notification: { title: req.params.title, body: req.params.body }, data: {} })
+      const message = new notificador.Message({ notification: { title: req.body.title, body: req.body.body }, data: {} })
       sender.send(message, { registrationTokens: devices }, function (err, response) {
         if (err) console.error(err)
         else console.log(response)
