@@ -352,12 +352,12 @@ module.exports.setup = (app, db) => {
    *                    type: object
    *                    required:
    *                        - username
-   *                        - titulo
+   *                        - title
    *                        - body
    *                    properties:
    *                        username:
    *                            type: string
-   *                        titulo:
+   *                        title:
    *                            type: string
    *                        body:
    *                            type: string
@@ -378,25 +378,27 @@ module.exports.setup = (app, db) => {
     try {
       const devices = await db.usuarios.getDevicesFromUser(req.body.username)
 
-      if (devices === null) {
+      if (devices.length === 0) {
         return res.status(404).json({
           success: false,
-          error: 'Username no encontrado.'
+          error: 'Devices no encontrados.'
         })
       }
+
+      const devicesList = devices.map((d) => d.id)
 
       const notificador = require('node-gcm')
       const sender = notificador.Sender('AAAAzalzT_s:APA91bFtIbR8YlWZ61WG9i09D_pPz7dLUZThRykja_mp1CTqD6a6x' +
         'Rjp7O-PX4ThjgJQQDqkPX9gWw6NMsEvyop9Sf-bvmki7UXcixbLjGhRKLi8VuUv7Tckgq7d8GgUrySAd4L7oIU-')
-      const message = new notificador.Message({ notification: { title: req.body.title, body: 'aaaa' }, data: {} })
-      sender.send(message, { registrationTokens: devices }, function (err, response) {
+      const message = new notificador.Message({ notification: { title: req.body.title, body: req.body.body }, data: {} })
+      sender.send(message, { registrationTokens: devicesList }, function (err, response) {
         if (err) console.error(err)
         else console.log(response)
       })
 
-      res.status(201).json({
+      res.status(200).json({
         success: true,
-        data: req
+        data: 'Todo ok'
       })
     } catch (error) {
       res.status(500).json({
