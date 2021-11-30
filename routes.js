@@ -220,4 +220,117 @@ module.exports.setup = (app, db) => {
       }
     })
   }
+
+  /**
+   * @openapi
+   * /usuarios/devices:
+   *    post:
+   *      description: Crea un device para un usuario
+   *      consumes:
+   *          - application/json
+   *      produces:
+   *          - application/json
+   *      requestBody:
+   *          description: Device a crear
+   *          required: true
+   *          content:
+   *            application/json:
+   *                schema:
+   *                    type: object
+   *                    required:
+   *                        - username
+   *                        - device
+   *                    properties:
+   *                        username:
+   *                            type: string
+   *                        device:
+   *                            type: string
+   *      responses:
+   *          201:
+   *              description: Devuelve el device creado
+   */
+  app.post('/usuarios/devices', async (req, res) => {
+    const headerApiKey = req.get('X-API-KEY')
+
+    if (!apiKeyIsValid(headerApiKey)) {
+      return res.status(401).json({
+        success: false,
+        error: 'API Key invalida'
+      })
+    }
+
+    const body = req.body
+
+    if (!body.username || !body.device) {
+      return res.status(400).json({
+        success: false,
+        error: 'Body incompleto.'
+      })
+    }
+
+    try {
+      const data = await db.usuarios.addDevice(body.username, body.device)
+      res.status(201).json({
+        success: true,
+        data
+      })
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error.message || error
+      })
+    }
+  })
+
+  /**
+   * @openapi
+   * /usuarios/devices/{device}:
+   *    delete:
+   *      description: Elimina un device para un usuario
+   *      consumes:
+   *          - application/json
+   *      produces:
+   *          - application/json
+   *      parameters:
+   *         - in: path
+   *           name: device
+   *           schema:
+   *              type: string
+   *           required: true
+   *      responses:
+   *          201:
+   *              description: Devuelve el device eliminado
+   */
+  app.delete('/usuarios/devices/:device', async (req, res) => {
+    const headerApiKey = req.get('X-API-KEY')
+
+    if (!apiKeyIsValid(headerApiKey)) {
+      return res.status(401).json({
+        success: false,
+        error: 'API Key invalida'
+      })
+    }
+
+    try {
+      const deviceDB = await db.usuarios.getDevice(req.params.device)
+
+      if (deviceDB === null) {
+        return res.status(404).json({
+          success: false,
+          error: 'Device no encontrado.'
+        })
+      }
+
+      const data = await db.usuarios.deleteDevice(req.params.device)
+      res.status(202).json({
+        success: true,
+        data
+      })
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error.message || error
+      })
+    }
+  })
 }
