@@ -41,6 +41,10 @@ class UsuariosRepository {
   async getDevice (device) {
     return this.db.oneOrNone('SELECT * FROM "devices" WHERE "id" = $1', device)
   }
+
+  async getDevicesFromUser (username) {
+    return this.db.manyOrNone('SELECT "id" FROM "devices" WHERE "username" = $1', username)
+  }
 }
 
 module.exports = UsuariosRepository

@@ -333,4 +333,76 @@ module.exports.setup = (app, db) => {
       })
     }
   })
+
+  /**
+   * @openapi
+   * /usuarios/notify:
+   *    post:
+   *      description: Notifica los devices de un usuario
+   *      consumes:
+   *          - application/json
+   *      produces:
+   *          - application/json
+   *      requestBody:
+   *          description: Usuario a notificar
+   *          required: true
+   *          content:
+   *            application/json:
+   *                schema:
+   *                    type: object
+   *                    required:
+   *                        - username
+   *                        - titulo
+   *                        - body
+   *                    properties:
+   *                        username:
+   *                            type: string
+   *                        titulo:
+   *                            type: string
+   *                        body:
+   *                            type: string
+   *      responses:
+   *          201:
+   *              description: Notificó al usuario correctamente
+   */
+  app.post('/usuarios/notify', async (req, res) => {
+    const headerApiKey = req.get('X-API-KEY')
+
+    if (!apiKeyIsValid(headerApiKey)) {
+      return res.status(401).json({
+        success: false,
+        error: 'API Key invalida'
+      })
+    }
+
+    try {
+      const devices = await db.usuarios.getDevicesFromUser(req.params.username)
+
+      if (devices === null) {
+        return res.status(404).json({
+          success: false,
+          error: 'Username no encontrado.'
+        })
+      }
+
+      const notificador = require('node-gcm')
+      const sender = notificador.Sender('AAAAzalzT_s:APA91bFtIbR8YlWZ61WG9i09D_pPz7dLUZThRykja_mp1CTqD6a6x' +
+        'Rjp7O-PX4ThjgJQQDqkPX9gWw6NMsEvyop9Sf-bvmki7UXcixbLjGhRKLi8VuUv7Tckgq7d8GgUrySAd4L7oIU-')
+      const message = new notificador.Message({ notification: { title: req.params.title, body: req.params.body }, data: {} })
+      sender.send(message, { registrationTokens: devices }, function (err, response) {
+        if (err) console.error(err)
+        else console.log(response)
+      })
+
+      res.status(201).json({
+        success: true,
+        data: req
+      })
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error.message || error
+      })
+    }
+  })
 }
