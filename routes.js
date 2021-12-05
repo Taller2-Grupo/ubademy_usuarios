@@ -477,13 +477,22 @@ module.exports.setup = (app, db) => {
    *          200:
    *              description: Devuelve el usuario activado
    */
-  app.patch('/usuarios/activar/:username', (req, res) => {
+  app.patch('/usuarios/activar/:username', async (req, res) => {
     const headerApiKey = req.get('X-API-KEY')
 
     if (!apiKeyIsValid(headerApiKey)) {
       return res.status(401).json({
         success: false,
         error: 'API Key invalida'
+      })
+    }
+
+    const user = await db.usuarios.findByUsername(req.params.username)
+
+    if (user === null) {
+      return res.status(404).json({
+        success: false,
+        error: 'Usuario no encontrado.'
       })
     }
 

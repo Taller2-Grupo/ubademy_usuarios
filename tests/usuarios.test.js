@@ -279,6 +279,36 @@ describe('Patch a /usuarios/bloquear/username', () => {
   })
 })
 
+describe('Patch a /usuarios/activar/username', () => {
+  test('devuelve 404 cuando no existe el usuario.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    await api
+      .patch('/usuarios/activar/string')
+      .set('X-API-KEY', process.env.API_KEY)
+      .expect(404)
+  })
+
+  test('devuelve 401 sin api key.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    await api
+      .patch('/usuarios/activar/string')
+      .expect(401)
+  })
+
+  test('devuelve 404 con api key desactivada.', async () => {
+    process.env.API_KEY_ENABLED = false
+    process.env.API_KEY = 'test'
+
+    await api
+      .get('/usuarios/activar/string')
+      .expect(404)
+  })
+})
+
 afterAll(() => {
   server.close()
   pgp.end()
