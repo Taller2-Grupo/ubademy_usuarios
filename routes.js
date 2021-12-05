@@ -208,12 +208,12 @@ module.exports.setup = (app, db) => {
 
       try {
         const data = await handler(req)
-        res.json({
+        res.status(200).json({
           success: true,
           data
         })
       } catch (error) {
-        res.json({
+        res.status(500).json({
           success: false,
           error: error.message || error
         })

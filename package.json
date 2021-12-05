@@ -7,7 +7,7 @@
     "dev": "cross-env NODE_ENV=development nodemon index.js",
     "lint": "standard",
     "start": "cross-env NODE_ENV=production node index.js",
-    "test": "cross-env NODE_ENV=test standard && jest --verbose --detectOpenHandles --collectCoverage",
+    "test": "cross-env NODE_ENV=test standard && npm run migrate up -- --database-url-var=TEST_DATABASE_URL --no-verbose && jest --verbose --collectCoverage && npm run migrate down 99 -- --database-url-var=TEST_DATABASE_URL --no-verbose",
     "migrate": "node-pg-migrate"
   },
   "author": "",
