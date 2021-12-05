@@ -163,6 +163,51 @@ describe('Post a /usuarios/add', () => {
   })
 })
 
+describe('Patch a /usuarios/update', () => {
+  test('devuelve 400 sin body.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    await api
+      .patch('/usuarios/update')
+      .set('X-API-KEY', process.env.API_KEY)
+      .expect(400)
+  })
+
+  test('devuelve 200 con body completo.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    const username = await crearUsuario()
+
+    await api
+      .patch('/usuarios/update')
+      .set('X-API-KEY', process.env.API_KEY)
+      .send({
+        username: username,
+        nombre: 'test',
+        apellido: 'test'
+      })
+      .expect(200)
+  })
+
+  test('devuelve 401 sin api key.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    const username = await crearUsuario()
+
+    await api
+      .patch('/usuarios/update')
+      .send({
+        username: username,
+        nombre: 'test',
+        apellido: 'test'
+      })
+      .expect(401)
+  })
+})
+
 describe('Post a /usuarios/devices', () => {
   test('devuelve 400 sin body.', async () => {
     process.env.API_KEY_ENABLED = true
@@ -272,6 +317,18 @@ describe('DELETE a /usuarios/devices/{device}', () => {
 })
 
 describe('Patch a /usuarios/bloquear/username', () => {
+  test('devuelve 200 cuando existe el usuario.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    const username = await crearUsuario()
+
+    await api
+      .patch('/usuarios/bloquear/' + username)
+      .set('X-API-KEY', process.env.API_KEY)
+      .expect(200)
+  })
+
   test('devuelve 404 cuando no existe el usuario.', async () => {
     process.env.API_KEY_ENABLED = true
     process.env.API_KEY = 'test'
@@ -302,6 +359,18 @@ describe('Patch a /usuarios/bloquear/username', () => {
 })
 
 describe('Patch a /usuarios/activar/username', () => {
+  test('devuelve 200 cuando existe el usuario.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    const username = await crearUsuario()
+
+    await api
+      .patch('/usuarios/activar/' + username)
+      .set('X-API-KEY', process.env.API_KEY)
+      .expect(200)
+  })
+
   test('devuelve 404 cuando no existe el usuario.', async () => {
     process.env.API_KEY_ENABLED = true
     process.env.API_KEY = 'test'

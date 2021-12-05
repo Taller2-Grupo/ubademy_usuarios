@@ -12,9 +12,9 @@ class UsuariosRepository {
   }
 
   // Tries to find a user from id;
-  async findById (id) {
-    return this.db.oneOrNone('SELECT * FROM usuarios WHERE id = $1', +id)
-  }
+  // async findById (id) {
+  //   return this.db.oneOrNone('SELECT * FROM usuarios WHERE id = $1', +id)
+  // }
 
   // Tries to find a user from name;
   async findByUsername (username) {

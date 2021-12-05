@@ -72,10 +72,7 @@ module.exports.setup = (app, db) => {
         data
       })
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error.message || error
-      })
+      internalError(res, error)
     }
   })
 
@@ -180,17 +177,19 @@ module.exports.setup = (app, db) => {
 
     const body = req.body
 
-    console.log(body)
+    if (!body.username || !body.nombre || !body.apellido) {
+      return res.status(400).json({
+        success: false,
+        error: 'Body incompleto.'
+      })
+    }
 
     db.usuarios.update(body.username, body.nombre, body.apellido)
       .then(function (usuarioActualizado) {
         res.json(usuarioActualizado)
       })
       .catch(function (error) {
-        res.json({
-          success: false,
-          error: error.message || error
-        })
+        internalError(res, error)
       })
   })
 
@@ -213,10 +212,7 @@ module.exports.setup = (app, db) => {
           data
         })
       } catch (error) {
-        res.status(500).json({
-          success: false,
-          error: error.message || error
-        })
+        internalError(res, error)
       }
     })
   }
@@ -275,10 +271,7 @@ module.exports.setup = (app, db) => {
         data
       })
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error.message || error
-      })
+      internalError(res, error)
     }
   })
 
@@ -327,10 +320,7 @@ module.exports.setup = (app, db) => {
         data
       })
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error.message || error
-      })
+      internalError(res, error)
     }
   })
 
@@ -401,10 +391,7 @@ module.exports.setup = (app, db) => {
         data: 'Todo ok'
       })
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error.message || error
-      })
+      internalError(res, error)
     }
   })
 
@@ -451,10 +438,7 @@ module.exports.setup = (app, db) => {
         res.status(200).json(usuarioBloqueado)
       })
       .catch(function (error) {
-        res.status(500).json({
-          success: false,
-          error: error.message || error
-        })
+        internalError(res, error)
       })
   })
 
@@ -501,10 +485,13 @@ module.exports.setup = (app, db) => {
         res.json(usuarioActivado)
       })
       .catch(function (error) {
-        res.json({
-          success: false,
-          error: error.message || error
-        })
+        internalError(res, error)
       })
+  })
+}
+function internalError (res, error) {
+  res.status(500).json({
+    success: false,
+    error: error.message || error
   })
 }
