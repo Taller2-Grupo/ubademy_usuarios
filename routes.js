@@ -407,4 +407,86 @@ module.exports.setup = (app, db) => {
       })
     }
   })
+
+  /**
+   * @openapi
+   * /usuarios/bloquear/{username}:
+   *    patch:
+   *      description: Bloquea un usuario
+   *      consumes:
+   *          - application/json
+   *      produces:
+   *          - application/json
+   *      parameters:
+   *          - in: path
+   *            name: username
+   *            schema:
+   *               type: string
+   *            required: true
+   *      responses:
+   *          200:
+   *              description: Devuelve el usuario bloqueado
+   */
+  app.patch('/usuarios/bloquear/:username', (req, res) => {
+    const headerApiKey = req.get('X-API-KEY')
+
+    if (!apiKeyIsValid(headerApiKey)) {
+      return res.status(401).json({
+        success: false,
+        error: 'API Key invalida'
+      })
+    }
+
+    db.usuarios.bloquear(req.params.username)
+      .then(function (usuarioBloqueado) {
+        res.json(usuarioBloqueado)
+      })
+      .catch(function (error) {
+        res.json({
+          success: false,
+          error: error.message || error
+        })
+      })
+  })
+
+  /**
+   * @openapi
+   * /usuarios/activar/{username}:
+   *    patch:
+   *      description: Activa un usuario
+   *      consumes:
+   *          - application/json
+   *      produces:
+   *          - application/json
+   *      parameters:
+   *          - in: path
+   *            name: username
+   *            schema:
+   *               type: string
+   *            required: true
+   *      responses:
+   *          200:
+   *              description: Devuelve el usuario activado
+   */
+  app.patch('/usuarios/activar/:username', (req, res) => {
+    const headerApiKey = req.get('X-API-KEY')
+
+    if (!apiKeyIsValid(headerApiKey)) {
+      return res.status(401).json({
+        success: false,
+        error: 'API Key invalida'
+      })
+    }
+
+    db.usuarios.activar(req.params.username)
+      .then(function (usuarioActivado) {
+        res.json(usuarioActivado)
+      })
+      .catch(function (error) {
+        res.json({
+          success: false,
+          error: error.message || error
+        })
+      })
+  })
 }

@@ -45,6 +45,14 @@ class UsuariosRepository {
   async getDevicesFromUser (username) {
     return this.db.manyOrNone('SELECT "id" FROM "devices" WHERE "username" = $1', username)
   }
+
+  async bloquear (username) {
+    return this.db.oneOrNone('UPDATE usuarios SET "estado" = $2 WHERE "username" = $1 RETURNING *', [username, 'bloqueado'])
+  }
+
+  async activar (username) {
+    return this.db.oneOrNone('UPDATE usuarios SET "estado" = $2 WHERE "username" = $1 RETURNING *', [username, 'activo'])
+  }
 }
 
 module.exports = UsuariosRepository
