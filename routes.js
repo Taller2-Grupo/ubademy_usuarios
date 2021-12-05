@@ -427,7 +427,7 @@ module.exports.setup = (app, db) => {
    *          200:
    *              description: Devuelve el usuario bloqueado
    */
-  app.patch('/usuarios/bloquear/:username', (req, res) => {
+  app.patch('/usuarios/bloquear/:username', async (req, res) => {
     const headerApiKey = req.get('X-API-KEY')
 
     if (!apiKeyIsValid(headerApiKey)) {
@@ -437,12 +437,21 @@ module.exports.setup = (app, db) => {
       })
     }
 
+    const user = await db.usuarios.findByUsername(req.params.username)
+
+    if (user === null) {
+      return res.status(404).json({
+        success: false,
+        error: 'Usuario no encontrado.'
+      })
+    }
+
     db.usuarios.bloquear(req.params.username)
       .then(function (usuarioBloqueado) {
-        res.json(usuarioBloqueado)
+        res.status(200).json(usuarioBloqueado)
       })
       .catch(function (error) {
-        res.json({
+        res.status(500).json({
           success: false,
           error: error.message || error
         })

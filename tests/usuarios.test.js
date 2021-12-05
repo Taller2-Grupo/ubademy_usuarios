@@ -151,138 +151,133 @@ describe('Post a /usuarios/add', () => {
   })
 })
 
-// describe('Post a /usuarios/devices', () => {
-//   test('devuelve 400 sin body.', async () => {
-//     process.env.API_KEY_ENABLED = true
-//     process.env.API_KEY = 'test'
+describe('Post a /usuarios/devices', () => {
+  test('devuelve 400 sin body.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
 
-//     await api
-//       .post('/usuarios/devices')
-//       .set('X-API-KEY', process.env.API_KEY)
-//       .expect(400)
-//   })
+    await api
+      .post('/usuarios/devices')
+      .set('X-API-KEY', process.env.API_KEY)
+      .expect(400)
+  })
 
-//   // TODO: No se por que tira null el db.usuarios
-//   // test('devuelve 201 con body completado correctamente.', async () => {
-//   //   process.env.API_KEY_ENABLED = true
-//   //   process.env.API_KEY = 'test'
+  // test('devuelve 201 con body completado correctamente.', async () => {
+  //   process.env.API_KEY_ENABLED = true
+  //   process.env.API_KEY = 'test'
 
-//   //   await api
-//   //     .post('/usuarios/devices')
-//   //     .set('X-API-KEY', process.env.API_KEY)
-//   //     .send({
-//   //       username: 'test@test.com',
-//   //       device: 'test'
-//   //     })
-//   //     .set('Content-Type', 'application/json')
-//   //     .set('Accept', 'application/json')
-//   //     .expect({})
-//   //     .expect(201)
-//   // })
+  //   await api
+  //     .post('/usuarios/devices')
+  //     .set('X-API-KEY', process.env.API_KEY)
+  //     .send({
+  //       username: 'test@test.com',
+  //       device: 'test'
+  //     })
+  //     .set('Content-Type', 'application/json')
+  //     .set('Accept', 'application/json')
+  //     .expect(201)
+  // })
 
-//   test('devuelve 401 sin api key.', async () => {
-//     process.env.API_KEY_ENABLED = true
-//     process.env.API_KEY = 'test'
+  test('devuelve 401 sin api key.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
 
-//     await api
-//       .post('/usuarios/devices')
-//       .send({
-//         username: 'test@test.com',
-//         device: 'test'
-//       })
-//       .set('Content-Type', 'application/json')
-//       .set('Accept', 'application/json')
-//       .expect(401)
-//   })
+    await api
+      .post('/usuarios/devices')
+      .send({
+        username: 'test@test.com',
+        device: 'test'
+      })
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .expect(401)
+  })
 
-//   // TODO: No se por que tira null el db.usuarios
-//   // test('devuelve 201 con api key desactivada.', async () => {
-//   //   process.env.API_KEY_ENABLED = false
-//   //   process.env.API_KEY = 'test'
+  // test('devuelve 201 con api key desactivada.', async () => {
+  //   process.env.API_KEY_ENABLED = false
+  //   process.env.API_KEY = 'test'
 
-//   //   await api
-//   //     .post('/usuarios/devices')
-//   //     .send({
-//   //       username: 'test@test.com',
-//   //       device: 'test'
-//   //     })
-//   //     .set('Content-Type', 'application/json')
-//   //     .set('Accept', 'application/json')
-//   //     .expect(201)
-//   // })
-// })
+  //   await api
+  //     .post('/usuarios/devices')
+  //     .send({
+  //       username: 'test@test.com',
+  //       device: 'test'
+  //     })
+  //     .set('Content-Type', 'application/json')
+  //     .set('Accept', 'application/json')
+  //     .expect(201)
+  // })
+})
 
-// describe('DELETE a /usuarios/devices/{device}', () => {
-//   // test('devuelve 202 con device existente.', async () => {
-//   //   process.env.API_KEY_ENABLED = true
-//   //   process.env.API_KEY = 'test'
+describe('DELETE a /usuarios/devices/{device}', () => {
+  // test('devuelve 202 con device existente.', async () => {
+  //   process.env.API_KEY_ENABLED = true
+  //   process.env.API_KEY = 'test'
 
-//   //   await api
-//   //     .delete('/usuarios/devices/asd')
-//   //     .set('X-API-KEY', process.env.API_KEY)
-//   //     .expect(202)
-//   // })
+  //   await api
+  //     .delete('/usuarios/devices/asd')
+  //     .set('X-API-KEY', process.env.API_KEY)
+  //     .expect(202)
+  // })
 
-//   // TODO: No se por que tira null el db.usuarios
-//   // test('devuelve 404 con device inexistente.', async () => {
-//   //   process.env.API_KEY_ENABLED = true
-//   //   process.env.API_KEY = 'test'
+  test('devuelve 404 con device inexistente.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
 
-//   //   await api
-//   //     .delete('/usuarios/devices/asd')
-//   //     .set('X-API-KEY', process.env.API_KEY)
-//   //     .expect({})
-//   //     .expect(404)
-//   // })
+    await api
+      .delete('/usuarios/devices/asd')
+      .set('X-API-KEY', process.env.API_KEY)
+      .expect(404)
+  })
 
-//   test('devuelve 401 sin api key.', async () => {
-//     process.env.API_KEY_ENABLED = true
-//     process.env.API_KEY = 'test'
+  test('devuelve 401 sin api key.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
 
-//     await api
-//       .delete('/usuarios/devices/asd')
-//       .expect(401)
-//   })
+    await api
+      .delete('/usuarios/devices/asd')
+      .expect(401)
+  })
 
-//   // test('devuelve 202 con api key desactivada.', async () => {
-//   //   process.env.API_KEY_ENABLED = false
-//   //   process.env.API_KEY = 'test'
+  // test('devuelve 202 con api key desactivada.', async () => {
+  //   process.env.API_KEY_ENABLED = false
+  //   process.env.API_KEY = 'test'
 
-//   //   await api
-//   //     .delete('/usuarios/devices/asd')
-//   //     .expect(202)
-//   // })
-// })
+  //   await api
+  //     .delete('/usuarios/devices/asd')
+  //     .expect(202)
+  // })
+})
 
-// describe('Patch a /usuarios/bloquear/username', () => {
-//   test('devuelve 200 cuando existe el usuario.', async () => {
-//     process.env.API_KEY_ENABLED = true
-//     process.env.API_KEY = 'test'
+describe('Patch a /usuarios/bloquear/username', () => {
+  test('devuelve 404 cuando no existe el usuario.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
 
-//     await api
-//       .patch('/usuarios/bloquear/string')
-//       .set('X-API-KEY', process.env.API_KEY)
-//       .expect(200)
-//   })
+    await api
+      .patch('/usuarios/bloquear/string')
+      .set('X-API-KEY', process.env.API_KEY)
+      .expect(404)
+  })
 
-//   test('devuelve 401 sin api key.', async () => {
-//     process.env.API_KEY_ENABLED = true
-//     process.env.API_KEY = 'test'
+  test('devuelve 401 sin api key.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
 
-//     await api
-//       .patch('/usuarios/bloquear/string')
-//       .expect(401)
-//   })
+    await api
+      .patch('/usuarios/bloquear/string')
+      .expect(401)
+  })
 
-//   test('devuelve 200 con api key desactivada.', async () => {
-//     process.env.API_KEY_ENABLED = false
-//     process.env.API_KEY = 'test'
+  test('devuelve 404 con api key desactivada.', async () => {
+    process.env.API_KEY_ENABLED = false
+    process.env.API_KEY = 'test'
 
-//     await api
-//       .get('/usuarios/bloquear/string')
-//       .expect(200)
-//   })
-// })
+    await api
+      .get('/usuarios/bloquear/string')
+      .expect(404)
+  })
+})
 
 afterAll(() => {
   server.close()
