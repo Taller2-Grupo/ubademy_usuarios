@@ -67,12 +67,12 @@ module.exports.setup = (app, db) => {
 
     try {
       const data = await db.usuarios.add(body.username, body.password, body.nombre, body.apellido, body.esAdmin)
-      res.json({
+      res.status(201).json({
         success: true,
         data
       })
     } catch (error) {
-      res.json({
+      res.status(500).json({
         success: false,
         error: error.message || error
       })

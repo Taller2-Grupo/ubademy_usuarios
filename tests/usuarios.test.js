@@ -18,138 +18,138 @@ describe('Get a /usuarios', () => {
       .expect(200)
   })
 
-  // test('devuelve 401 sin Api key.', async () => {
-  //   process.env.API_KEY_ENABLED = true
-  //   process.env.API_KEY = 'test'
+  test('devuelve 401 sin Api key.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
 
-  //   await api
-  //     .get('/usuarios')
-  //     .expect(401)
-  // })
+    await api
+      .get('/usuarios')
+      .expect(401)
+  })
 
-  // test('devuelve 200 con Api key desactivada.', async () => {
-  //   process.env.API_KEY_ENABLED = false
-  //   process.env.API_KEY = 'test'
+  test('devuelve 200 con Api key desactivada.', async () => {
+    process.env.API_KEY_ENABLED = false
+    process.env.API_KEY = 'test'
 
-  //   await api
-  //     .get('/usuarios')
-  //     .expect(200)
-  // })
+    await api
+      .get('/usuarios')
+      .expect(200)
+  })
 })
 
-// describe('Get a /usuarios/username', () => {
-//   test('devuelve 200 cuando existe el usuario.', async () => {
-//     process.env.API_KEY_ENABLED = true
-//     process.env.API_KEY = 'test'
+describe('Get a /usuarios/username', () => {
+  test('devuelve 200 cuando no existe el usuario.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
 
-//     await api
-//       .get('/usuarios/string')
-//       .set('X-API-KEY', process.env.API_KEY)
-//       .expect(200)
-//   })
+    await api
+      .get('/usuarios/string')
+      .set('X-API-KEY', process.env.API_KEY)
+      .expect(404)
+  })
 
-//   test('devuelve 401 sin api key.', async () => {
-//     process.env.API_KEY_ENABLED = true
-//     process.env.API_KEY = 'test'
+  test('devuelve 401 sin api key.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
 
-//     await api
-//       .get('/usuarios/string')
-//       .expect(401)
-//   })
+    await api
+      .get('/usuarios/string')
+      .expect(401)
+  })
 
-//   test('devuelve 200 con api key desactivada.', async () => {
-//     process.env.API_KEY_ENABLED = false
-//     process.env.API_KEY = 'test'
+  test('devuelve 404 con api key desactivada cuando no existe el usuario.', async () => {
+    process.env.API_KEY_ENABLED = false
+    process.env.API_KEY = 'test'
 
-//     await api
-//       .get('/usuarios/string')
-//       .expect(200)
-//   })
-// })
+    await api
+      .get('/usuarios/string')
+      .expect(404)
+  })
+})
 
-// describe('Post a /usuarios/add', () => {
-//   test('devuelve 400 sin body.', async () => {
-//     process.env.API_KEY_ENABLED = true
-//     process.env.API_KEY = 'test'
+describe('Post a /usuarios/add', () => {
+  test('devuelve 400 sin body.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
 
-//     await api
-//       .post('/usuarios/add')
-//       .set('X-API-KEY', process.env.API_KEY)
-//       .expect(400)
-//   })
+    await api
+      .post('/usuarios/add')
+      .set('X-API-KEY', process.env.API_KEY)
+      .expect(400)
+  })
 
-//   test('devuelve 400 si el username no es un mail.', async () => {
-//     process.env.API_KEY_ENABLED = true
-//     process.env.API_KEY = 'test'
+  test('devuelve 400 si el username no es un mail.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
 
-//     await api
-//       .post('/usuarios/add')
-//       .set('X-API-KEY', process.env.API_KEY)
-//       .send({
-//         username: 'test',
-//         password: 'test',
-//         nombre: 'test',
-//         apellido: 'test',
-//         esAdmin: false
-//       })
-//       .expect(400)
-//   })
+    await api
+      .post('/usuarios/add')
+      .set('X-API-KEY', process.env.API_KEY)
+      .send({
+        username: 'test',
+        password: 'test',
+        nombre: 'test',
+        apellido: 'test',
+        esAdmin: false
+      })
+      .expect(400)
+  })
 
-//   test('devuelve 200 con body completado correctamente.', async () => {
-//     process.env.API_KEY_ENABLED = true
-//     process.env.API_KEY = 'test'
+  test('devuelve 200 con body completado correctamente.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
 
-//     await api
-//       .post('/usuarios/add')
-//       .set('X-API-KEY', process.env.API_KEY)
-//       .send({
-//         username: 'test@test.com',
-//         password: 'test',
-//         nombre: 'test',
-//         apellido: 'test',
-//         esAdmin: false
-//       })
-//       .set('Content-Type', 'application/json')
-//       .set('Accept', 'application/json')
-//       .expect(200)
-//   })
+    await api
+      .post('/usuarios/add')
+      .set('X-API-KEY', process.env.API_KEY)
+      .send({
+        username: 'test_1@test.com',
+        password: 'test',
+        nombre: 'test',
+        apellido: 'test',
+        esAdmin: false
+      })
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .expect(201)
+  })
 
-//   test('devuelve 401 sin api key.', async () => {
-//     process.env.API_KEY_ENABLED = true
-//     process.env.API_KEY = 'test'
+  test('devuelve 401 sin api key.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
 
-//     await api
-//       .post('/usuarios/add')
-//       .send({
-//         username: 'test@test.com',
-//         password: 'test',
-//         nombre: 'test',
-//         apellido: 'test',
-//         esAdmin: false
-//       })
-//       .set('Content-Type', 'application/json')
-//       .set('Accept', 'application/json')
-//       .expect(401)
-//   })
+    await api
+      .post('/usuarios/add')
+      .send({
+        username: 'test_2@test.com',
+        password: 'test',
+        nombre: 'test',
+        apellido: 'test',
+        esAdmin: false
+      })
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .expect(401)
+  })
 
-//   test('devuelve 200 con api key desactivada.', async () => {
-//     process.env.API_KEY_ENABLED = false
-//     process.env.API_KEY = 'test'
+  test('devuelve 201 con api key desactivada.', async () => {
+    process.env.API_KEY_ENABLED = false
+    process.env.API_KEY = 'test'
 
-//     await api
-//       .post('/usuarios/add')
-//       .send({
-//         username: 'test@test.com',
-//         password: 'test',
-//         nombre: 'test',
-//         apellido: 'test',
-//         esAdmin: false
-//       })
-//       .set('Content-Type', 'application/json')
-//       .set('Accept', 'application/json')
-//       .expect(200)
-//   })
-// })
+    await api
+      .post('/usuarios/add')
+      .send({
+        username: 'test_3@test.com',
+        password: 'test',
+        nombre: 'test',
+        apellido: 'test',
+        esAdmin: false
+      })
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .expect(201)
+  })
+})
 
 // describe('Post a /usuarios/devices', () => {
 //   test('devuelve 400 sin body.', async () => {
