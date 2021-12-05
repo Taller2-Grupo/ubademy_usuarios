@@ -162,21 +162,23 @@ describe('Post a /usuarios/devices', () => {
       .expect(400)
   })
 
-  // test('devuelve 201 con body completado correctamente.', async () => {
-  //   process.env.API_KEY_ENABLED = true
-  //   process.env.API_KEY = 'test'
+  test('devuelve 201 con body completado correctamente.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
 
-  //   await api
-  //     .post('/usuarios/devices')
-  //     .set('X-API-KEY', process.env.API_KEY)
-  //     .send({
-  //       username: 'test@test.com',
-  //       device: 'test'
-  //     })
-  //     .set('Content-Type', 'application/json')
-  //     .set('Accept', 'application/json')
-  //     .expect(201)
-  // })
+    const username = await crearUsuario()
+
+    await api
+      .post('/usuarios/devices')
+      .set('X-API-KEY', process.env.API_KEY)
+      .send({
+        username: username,
+        device: 'test'
+      })
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .expect(201)
+  })
 
   test('devuelve 401 sin api key.', async () => {
     process.env.API_KEY_ENABLED = true
@@ -313,3 +315,25 @@ afterAll(() => {
   server.close()
   pgp.end()
 })
+
+let userNumber = 0
+
+async function crearUsuario () {
+  const username = 'test_fixture_' + userNumber + '@test.com'
+  userNumber++
+
+  await api
+    .post('/usuarios/add')
+    .set('X-API-KEY', process.env.API_KEY)
+    .send({
+      username: username,
+      password: 'test',
+      nombre: 'test',
+      apellido: 'test',
+      esAdmin: false
+    })
+    .set('Content-Type', 'application/json')
+    .set('Accept', 'application/json')
+
+  return username
+}
