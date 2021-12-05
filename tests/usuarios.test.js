@@ -38,7 +38,7 @@ describe('Get a /usuarios', () => {
 })
 
 describe('Get a /usuarios/username', () => {
-  test('devuelve 200 cuando no existe el usuario.', async () => {
+  test('devuelve 404 cuando no existe el usuario.', async () => {
     process.env.API_KEY_ENABLED = true
     process.env.API_KEY = 'test'
 
@@ -46,6 +46,18 @@ describe('Get a /usuarios/username', () => {
       .get('/usuarios/string')
       .set('X-API-KEY', process.env.API_KEY)
       .expect(404)
+  })
+
+  test('devuelve 200 cuando existe el usuario.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    const username = await crearUsuario()
+
+    await api
+      .get('/usuarios/' + username)
+      .set('X-API-KEY', process.env.API_KEY)
+      .expect(200)
   })
 
   test('devuelve 401 sin api key.', async () => {
@@ -95,7 +107,7 @@ describe('Post a /usuarios/add', () => {
       .expect(400)
   })
 
-  test('devuelve 200 con body completado correctamente.', async () => {
+  test('devuelve 201 con body completado correctamente.', async () => {
     process.env.API_KEY_ENABLED = true
     process.env.API_KEY = 'test'
 
@@ -195,32 +207,37 @@ describe('Post a /usuarios/devices', () => {
       .expect(401)
   })
 
-  // test('devuelve 201 con api key desactivada.', async () => {
-  //   process.env.API_KEY_ENABLED = false
-  //   process.env.API_KEY = 'test'
+  test('devuelve 201 con api key desactivada.', async () => {
+    process.env.API_KEY_ENABLED = false
+    process.env.API_KEY = 'test'
 
-  //   await api
-  //     .post('/usuarios/devices')
-  //     .send({
-  //       username: 'test@test.com',
-  //       device: 'test'
-  //     })
-  //     .set('Content-Type', 'application/json')
-  //     .set('Accept', 'application/json')
-  //     .expect(201)
-  // })
+    const username = await crearUsuario()
+
+    await api
+      .post('/usuarios/devices')
+      .send({
+        username: username,
+        device: 'test_2'
+      })
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .expect(201)
+  })
 })
 
 describe('DELETE a /usuarios/devices/{device}', () => {
-  // test('devuelve 202 con device existente.', async () => {
-  //   process.env.API_KEY_ENABLED = true
-  //   process.env.API_KEY = 'test'
+  test('devuelve 202 con device existente.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
 
-  //   await api
-  //     .delete('/usuarios/devices/asd')
-  //     .set('X-API-KEY', process.env.API_KEY)
-  //     .expect(202)
-  // })
+    const username = await crearUsuario()
+    const device = await crearDevice(username)
+
+    await api
+      .delete('/usuarios/devices/' + device)
+      .set('X-API-KEY', process.env.API_KEY)
+      .expect(202)
+  })
 
   test('devuelve 404 con device inexistente.', async () => {
     process.env.API_KEY_ENABLED = true
@@ -336,4 +353,23 @@ async function crearUsuario () {
     .set('Accept', 'application/json')
 
   return username
+}
+
+let deviceNumber = 0
+
+async function crearDevice (username) {
+  const deviceId = 'test_fixture_' + deviceNumber
+  deviceNumber++
+
+  await api
+    .post('/usuarios/devices')
+    .set('X-API-KEY', process.env.API_KEY)
+    .send({
+      username: username,
+      device: deviceId
+    })
+    .set('Content-Type', 'application/json')
+    .set('Accept', 'application/json')
+
+  return deviceId
 }
