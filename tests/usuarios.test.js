@@ -258,14 +258,17 @@ describe('DELETE a /usuarios/devices/{device}', () => {
       .expect(401)
   })
 
-  // test('devuelve 202 con api key desactivada.', async () => {
-  //   process.env.API_KEY_ENABLED = false
-  //   process.env.API_KEY = 'test'
+  test('devuelve 202 con api key desactivada.', async () => {
+    process.env.API_KEY_ENABLED = false
+    process.env.API_KEY = 'test'
 
-  //   await api
-  //     .delete('/usuarios/devices/asd')
-  //     .expect(202)
-  // })
+    const username = await crearUsuario()
+    const device = await crearDevice(username)
+
+    await api
+      .delete('/usuarios/devices/' + device)
+      .expect(202)
+  })
 })
 
 describe('Patch a /usuarios/bloquear/username', () => {
