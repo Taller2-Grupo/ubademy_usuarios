@@ -31,7 +31,5 @@ jobs:
     - name: Run tests
       env:
         TEST_DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
-      run: |
-        echo $TEST_DATABASE_URL
-        npm test
+      run: npm test
       
