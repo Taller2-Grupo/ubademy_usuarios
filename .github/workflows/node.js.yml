@@ -10,11 +10,10 @@ on:
     branches: [ main ]
 
 jobs:
-  env:
-      TEST_DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
-
   build:
     runs-on: ubuntu-latest
+    env:
+      TEST_DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
 
     strategy:
       matrix:
