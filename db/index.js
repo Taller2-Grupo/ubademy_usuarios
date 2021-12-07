@@ -2,7 +2,11 @@ const promise = require('bluebird')
 const pgPromise = require('pg-promise')
 const { Usuarios } = require('./repos')
 
-const connectionString = process.env.DATABASE_URL
+let connectionString = process.env.DATABASE_URL
+
+if (process.env.NODE_ENV === 'test') {
+  connectionString = process.env.TEST_DATABASE_URL
+}
 
 const initOptions = {
   promiseLib: promise,
@@ -19,7 +23,7 @@ const initOptions = {
 
 const pgp = pgPromise(initOptions)
 
-if (process.env.NODE_ENV === 'production') {
+if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'test') {
   pgp.pg.defaults.ssl = {
     rejectUnauthorized: false
   }

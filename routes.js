@@ -67,15 +67,12 @@ module.exports.setup = (app, db) => {
 
     try {
       const data = await db.usuarios.add(body.username, body.password, body.nombre, body.apellido, body.esAdmin)
-      res.json({
+      res.status(201).json({
         success: true,
         data
       })
     } catch (error) {
-      res.json({
-        success: false,
-        error: error.message || error
-      })
+      internalError(res, error)
     }
   })
 
@@ -180,17 +177,19 @@ module.exports.setup = (app, db) => {
 
     const body = req.body
 
-    console.log(body)
+    if (!body.username || !body.nombre || !body.apellido) {
+      return res.status(400).json({
+        success: false,
+        error: 'Body incompleto.'
+      })
+    }
 
     db.usuarios.update(body.username, body.nombre, body.apellido)
       .then(function (usuarioActualizado) {
         res.json(usuarioActualizado)
       })
       .catch(function (error) {
-        res.json({
-          success: false,
-          error: error.message || error
-        })
+        internalError(res, error)
       })
   })
 
@@ -208,15 +207,12 @@ module.exports.setup = (app, db) => {
 
       try {
         const data = await handler(req)
-        res.json({
+        res.status(200).json({
           success: true,
           data
         })
       } catch (error) {
-        res.json({
-          success: false,
-          error: error.message || error
-        })
+        internalError(res, error)
       }
     })
   }
@@ -275,10 +271,7 @@ module.exports.setup = (app, db) => {
         data
       })
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error.message || error
-      })
+      internalError(res, error)
     }
   })
 
@@ -327,10 +320,7 @@ module.exports.setup = (app, db) => {
         data
       })
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error.message || error
-      })
+      internalError(res, error)
     }
   })
 
@@ -401,10 +391,107 @@ module.exports.setup = (app, db) => {
         data: 'Todo ok'
       })
     } catch (error) {
-      res.status(500).json({
+      internalError(res, error)
+    }
+  })
+
+  /**
+   * @openapi
+   * /usuarios/bloquear/{username}:
+   *    patch:
+   *      description: Bloquea un usuario
+   *      consumes:
+   *          - application/json
+   *      produces:
+   *          - application/json
+   *      parameters:
+   *          - in: path
+   *            name: username
+   *            schema:
+   *               type: string
+   *            required: true
+   *      responses:
+   *          200:
+   *              description: Devuelve el usuario bloqueado
+   */
+  app.patch('/usuarios/bloquear/:username', async (req, res) => {
+    const headerApiKey = req.get('X-API-KEY')
+
+    if (!apiKeyIsValid(headerApiKey)) {
+      return res.status(401).json({
         success: false,
-        error: error.message || error
+        error: 'API Key invalida'
       })
     }
+
+    const user = await db.usuarios.findByUsername(req.params.username)
+
+    if (user === null) {
+      return res.status(404).json({
+        success: false,
+        error: 'Usuario no encontrado.'
+      })
+    }
+
+    db.usuarios.bloquear(req.params.username)
+      .then(function (usuarioBloqueado) {
+        res.status(200).json(usuarioBloqueado)
+      })
+      .catch(function (error) {
+        internalError(res, error)
+      })
+  })
+
+  /**
+   * @openapi
+   * /usuarios/activar/{username}:
+   *    patch:
+   *      description: Activa un usuario
+   *      consumes:
+   *          - application/json
+   *      produces:
+   *          - application/json
+   *      parameters:
+   *          - in: path
+   *            name: username
+   *            schema:
+   *               type: string
+   *            required: true
+   *      responses:
+   *          200:
+   *              description: Devuelve el usuario activado
+   */
+  app.patch('/usuarios/activar/:username', async (req, res) => {
+    const headerApiKey = req.get('X-API-KEY')
+
+    if (!apiKeyIsValid(headerApiKey)) {
+      return res.status(401).json({
+        success: false,
+        error: 'API Key invalida'
+      })
+    }
+
+    const user = await db.usuarios.findByUsername(req.params.username)
+
+    if (user === null) {
+      return res.status(404).json({
+        success: false,
+        error: 'Usuario no encontrado.'
+      })
+    }
+
+    db.usuarios.activar(req.params.username)
+      .then(function (usuarioActivado) {
+        res.json(usuarioActivado)
+      })
+      .catch(function (error) {
+        internalError(res, error)
+      })
+  })
+}
+function internalError (res, error) {
+  res.status(500).json({
+    success: false,
+    error: error.message || error
   })
 }

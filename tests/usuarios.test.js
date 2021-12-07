@@ -2,14 +2,13 @@ require('dotenv').config()
 
 const { describe } = require('jest-circus')
 const supertest = require('supertest')
-const { buildApp } = require('../app')
+const { pgp } = require('../db')
+const { app, server } = require('../index')
 
-// Setup:
-const mockDB = jest.fn()
-const api = supertest(buildApp(mockDB))
+const api = supertest(app)
 
 describe('Get a /usuarios', () => {
-  test('devuelve 200 siempre.', async () => {
+  it('devuelve 200 siempre.', async () => {
     process.env.API_KEY_ENABLED = true
     process.env.API_KEY = 'test'
 
@@ -39,12 +38,24 @@ describe('Get a /usuarios', () => {
 })
 
 describe('Get a /usuarios/username', () => {
-  test('devuelve 200 cuando existe el usuario.', async () => {
+  test('devuelve 404 cuando no existe el usuario.', async () => {
     process.env.API_KEY_ENABLED = true
     process.env.API_KEY = 'test'
 
     await api
       .get('/usuarios/string')
+      .set('X-API-KEY', process.env.API_KEY)
+      .expect(404)
+  })
+
+  test('devuelve 200 cuando existe el usuario.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    const username = await crearUsuario()
+
+    await api
+      .get('/usuarios/' + username)
       .set('X-API-KEY', process.env.API_KEY)
       .expect(200)
   })
@@ -58,13 +69,13 @@ describe('Get a /usuarios/username', () => {
       .expect(401)
   })
 
-  test('devuelve 200 con api key desactivada.', async () => {
+  test('devuelve 404 con api key desactivada cuando no existe el usuario.', async () => {
     process.env.API_KEY_ENABLED = false
     process.env.API_KEY = 'test'
 
     await api
       .get('/usuarios/string')
-      .expect(200)
+      .expect(404)
   })
 })
 
@@ -96,7 +107,7 @@ describe('Post a /usuarios/add', () => {
       .expect(400)
   })
 
-  test('devuelve 200 con body completado correctamente.', async () => {
+  test('devuelve 201 con body completado correctamente.', async () => {
     process.env.API_KEY_ENABLED = true
     process.env.API_KEY = 'test'
 
@@ -104,7 +115,7 @@ describe('Post a /usuarios/add', () => {
       .post('/usuarios/add')
       .set('X-API-KEY', process.env.API_KEY)
       .send({
-        username: 'test@test.com',
+        username: 'test_1@test.com',
         password: 'test',
         nombre: 'test',
         apellido: 'test',
@@ -112,7 +123,7 @@ describe('Post a /usuarios/add', () => {
       })
       .set('Content-Type', 'application/json')
       .set('Accept', 'application/json')
-      .expect(200)
+      .expect(201)
   })
 
   test('devuelve 401 sin api key.', async () => {
@@ -122,7 +133,7 @@ describe('Post a /usuarios/add', () => {
     await api
       .post('/usuarios/add')
       .send({
-        username: 'test@test.com',
+        username: 'test_2@test.com',
         password: 'test',
         nombre: 'test',
         apellido: 'test',
@@ -133,14 +144,14 @@ describe('Post a /usuarios/add', () => {
       .expect(401)
   })
 
-  test('devuelve 200 con api key desactivada.', async () => {
+  test('devuelve 201 con api key desactivada.', async () => {
     process.env.API_KEY_ENABLED = false
     process.env.API_KEY = 'test'
 
     await api
       .post('/usuarios/add')
       .send({
-        username: 'test@test.com',
+        username: 'test_3@test.com',
         password: 'test',
         nombre: 'test',
         apellido: 'test',
@@ -148,7 +159,52 @@ describe('Post a /usuarios/add', () => {
       })
       .set('Content-Type', 'application/json')
       .set('Accept', 'application/json')
+      .expect(201)
+  })
+})
+
+describe('Patch a /usuarios/update', () => {
+  test('devuelve 400 sin body.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    await api
+      .patch('/usuarios/update')
+      .set('X-API-KEY', process.env.API_KEY)
+      .expect(400)
+  })
+
+  test('devuelve 200 con body completo.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    const username = await crearUsuario()
+
+    await api
+      .patch('/usuarios/update')
+      .set('X-API-KEY', process.env.API_KEY)
+      .send({
+        username: username,
+        nombre: 'test',
+        apellido: 'test'
+      })
       .expect(200)
+  })
+
+  test('devuelve 401 sin api key.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    const username = await crearUsuario()
+
+    await api
+      .patch('/usuarios/update')
+      .send({
+        username: username,
+        nombre: 'test',
+        apellido: 'test'
+      })
+      .expect(401)
   })
 })
 
@@ -163,23 +219,23 @@ describe('Post a /usuarios/devices', () => {
       .expect(400)
   })
 
-  // TODO: No se por que tira null el db.usuarios
-  // test('devuelve 201 con body completado correctamente.', async () => {
-  //   process.env.API_KEY_ENABLED = true
-  //   process.env.API_KEY = 'test'
+  test('devuelve 201 con body completado correctamente.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
 
-  //   await api
-  //     .post('/usuarios/devices')
-  //     .set('X-API-KEY', process.env.API_KEY)
-  //     .send({
-  //       username: 'test@test.com',
-  //       device: 'test'
-  //     })
-  //     .set('Content-Type', 'application/json')
-  //     .set('Accept', 'application/json')
-  //     .expect({})
-  //     .expect(201)
-  // })
+    const username = await crearUsuario()
+
+    await api
+      .post('/usuarios/devices')
+      .set('X-API-KEY', process.env.API_KEY)
+      .send({
+        username: username,
+        device: 'test'
+      })
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .expect(201)
+  })
 
   test('devuelve 401 sin api key.', async () => {
     process.env.API_KEY_ENABLED = true
@@ -196,45 +252,47 @@ describe('Post a /usuarios/devices', () => {
       .expect(401)
   })
 
-  // TODO: No se por que tira null el db.usuarios
-  // test('devuelve 201 con api key desactivada.', async () => {
-  //   process.env.API_KEY_ENABLED = false
-  //   process.env.API_KEY = 'test'
+  test('devuelve 201 con api key desactivada.', async () => {
+    process.env.API_KEY_ENABLED = false
+    process.env.API_KEY = 'test'
 
-  //   await api
-  //     .post('/usuarios/devices')
-  //     .send({
-  //       username: 'test@test.com',
-  //       device: 'test'
-  //     })
-  //     .set('Content-Type', 'application/json')
-  //     .set('Accept', 'application/json')
-  //     .expect(201)
-  // })
+    const username = await crearUsuario()
+
+    await api
+      .post('/usuarios/devices')
+      .send({
+        username: username,
+        device: 'test_2'
+      })
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .expect(201)
+  })
 })
 
 describe('DELETE a /usuarios/devices/{device}', () => {
-  // test('devuelve 202 con device existente.', async () => {
-  //   process.env.API_KEY_ENABLED = true
-  //   process.env.API_KEY = 'test'
+  test('devuelve 202 con device existente.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
 
-  //   await api
-  //     .delete('/usuarios/devices/asd')
-  //     .set('X-API-KEY', process.env.API_KEY)
-  //     .expect(202)
-  // })
+    const username = await crearUsuario()
+    const device = await crearDevice(username)
 
-  // TODO: No se por que tira null el db.usuarios
-  // test('devuelve 404 con device inexistente.', async () => {
-  //   process.env.API_KEY_ENABLED = true
-  //   process.env.API_KEY = 'test'
+    await api
+      .delete('/usuarios/devices/' + device)
+      .set('X-API-KEY', process.env.API_KEY)
+      .expect(202)
+  })
 
-  //   await api
-  //     .delete('/usuarios/devices/asd')
-  //     .set('X-API-KEY', process.env.API_KEY)
-  //     .expect({})
-  //     .expect(404)
-  // })
+  test('devuelve 404 con device inexistente.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    await api
+      .delete('/usuarios/devices/asd')
+      .set('X-API-KEY', process.env.API_KEY)
+      .expect(404)
+  })
 
   test('devuelve 401 sin api key.', async () => {
     process.env.API_KEY_ENABLED = true
@@ -245,12 +303,145 @@ describe('DELETE a /usuarios/devices/{device}', () => {
       .expect(401)
   })
 
-  // test('devuelve 202 con api key desactivada.', async () => {
-  //   process.env.API_KEY_ENABLED = false
-  //   process.env.API_KEY = 'test'
+  test('devuelve 202 con api key desactivada.', async () => {
+    process.env.API_KEY_ENABLED = false
+    process.env.API_KEY = 'test'
 
-  //   await api
-  //     .delete('/usuarios/devices/asd')
-  //     .expect(202)
-  // })
+    const username = await crearUsuario()
+    const device = await crearDevice(username)
+
+    await api
+      .delete('/usuarios/devices/' + device)
+      .expect(202)
+  })
 })
+
+describe('Patch a /usuarios/bloquear/username', () => {
+  test('devuelve 200 cuando existe el usuario.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    const username = await crearUsuario()
+
+    await api
+      .patch('/usuarios/bloquear/' + username)
+      .set('X-API-KEY', process.env.API_KEY)
+      .expect(200)
+  })
+
+  test('devuelve 404 cuando no existe el usuario.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    await api
+      .patch('/usuarios/bloquear/string')
+      .set('X-API-KEY', process.env.API_KEY)
+      .expect(404)
+  })
+
+  test('devuelve 401 sin api key.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    await api
+      .patch('/usuarios/bloquear/string')
+      .expect(401)
+  })
+
+  test('devuelve 404 con api key desactivada.', async () => {
+    process.env.API_KEY_ENABLED = false
+    process.env.API_KEY = 'test'
+
+    await api
+      .get('/usuarios/bloquear/string')
+      .expect(404)
+  })
+})
+
+describe('Patch a /usuarios/activar/username', () => {
+  test('devuelve 200 cuando existe el usuario.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    const username = await crearUsuario()
+
+    await api
+      .patch('/usuarios/activar/' + username)
+      .set('X-API-KEY', process.env.API_KEY)
+      .expect(200)
+  })
+
+  test('devuelve 404 cuando no existe el usuario.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    await api
+      .patch('/usuarios/activar/string')
+      .set('X-API-KEY', process.env.API_KEY)
+      .expect(404)
+  })
+
+  test('devuelve 401 sin api key.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    await api
+      .patch('/usuarios/activar/string')
+      .expect(401)
+  })
+
+  test('devuelve 404 con api key desactivada.', async () => {
+    process.env.API_KEY_ENABLED = false
+    process.env.API_KEY = 'test'
+
+    await api
+      .get('/usuarios/activar/string')
+      .expect(404)
+  })
+})
+
+afterAll(() => {
+  server.close()
+  pgp.end()
+})
+
+let userNumber = 0
+
+async function crearUsuario () {
+  const username = 'test_fixture_' + userNumber + '@test.com'
+  userNumber++
+
+  await api
+    .post('/usuarios/add')
+    .set('X-API-KEY', process.env.API_KEY)
+    .send({
+      username: username,
+      password: 'test',
+      nombre: 'test',
+      apellido: 'test',
+      esAdmin: false
+    })
+    .set('Content-Type', 'application/json')
+    .set('Accept', 'application/json')
+
+  return username
+}
+
+let deviceNumber = 0
+
+async function crearDevice (username) {
+  const deviceId = 'test_fixture_' + deviceNumber
+  deviceNumber++
+
+  await api
+    .post('/usuarios/devices')
+    .set('X-API-KEY', process.env.API_KEY)
+    .send({
+      username: username,
+      device: deviceId
+    })
+    .set('Content-Type', 'application/json')
+    .set('Accept', 'application/json')
+
+  return deviceId
+}
