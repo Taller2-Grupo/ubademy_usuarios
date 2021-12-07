@@ -126,6 +126,27 @@ describe('Post a /usuarios/add', () => {
       .expect(201)
   })
 
+  test('devuelve 400 si ya existe user con el mismo username.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    const username = await crearUsuario()
+
+    await api
+      .post('/usuarios/add')
+      .set('X-API-KEY', process.env.API_KEY)
+      .send({
+        username: username,
+        password: 'test',
+        nombre: 'test',
+        apellido: 'test',
+        esAdmin: false
+      })
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .expect(400)
+  })
+
   test('devuelve 401 sin api key.', async () => {
     process.env.API_KEY_ENABLED = true
     process.env.API_KEY = 'test'

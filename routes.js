@@ -65,6 +65,15 @@ module.exports.setup = (app, db) => {
       })
     }
 
+    const user = await db.usuarios.findByUsername(body.username)
+
+    if (user != null) {
+      return res.status(400).json({
+        success: false,
+        error: 'Username ya registrado.'
+      })
+    }
+
     try {
       const data = await db.usuarios.add(body.username, body.password, body.nombre, body.apellido, body.esAdmin)
       res.status(201).json({
@@ -489,6 +498,7 @@ module.exports.setup = (app, db) => {
       })
   })
 }
+
 function internalError (res, error) {
   res.status(500).json({
     success: false,
