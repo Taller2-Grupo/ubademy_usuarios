@@ -1,5 +1,6 @@
 const { validateEmail } = require('./utils')
 const { apiKeyIsValid } = require('./auth')
+const axios = require('axios')
 
 module.exports.setup = (app, db) => {
   /**
@@ -496,6 +497,44 @@ module.exports.setup = (app, db) => {
       .catch(function (error) {
         internalError(res, error)
       })
+  })
+
+  app.post('/usuarios/:username/billetera', async (req, res) => {
+    const user = await db.usuarios.findByUsername(req.params.username)
+
+    if (user === null) {
+      return res.status(404).json({
+        success: false,
+        error: 'Usuario no encontrado.'
+      })
+    }
+
+    const billeteraExistente = await db.usuarios.findBilleteraByUsername(req.params.username)
+
+    if (billeteraExistente !== null) {
+      return res.status(400).json({
+        success: false,
+        error: 'Billetera ya existe.'
+      })
+    }
+
+    axios
+      .post('https://ubademy-smart-contract.herokuapp.com/wallet', {})
+      .then(async resp => {
+        const billetera = await db.usuarios.addBilletera(req.params.username, resp.data.address, resp.data.privateKey)
+        res.status(201).json(billetera)
+      })
+      .catch(error => {
+        console.error(error)
+        res.status(500).json(error)
+      })
+  })
+
+  app.post('/usuarios/:username/suscripcion/:tipoSuscripcion', async (req, res) => {
+    // TODO: Ir a buscar usuario.
+    // TODO: Crear si tiene fondos suficientes.
+    // TODO: Hacer un deposit en api payments por la cantidad segun tipoSuscripcion.
+    // TODO: Actualizar entidad usuario y billetera con la suscripcion correspondiente.
   })
 }
 
