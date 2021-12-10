@@ -499,6 +499,25 @@ module.exports.setup = (app, db) => {
       })
   })
 
+  /**
+   * @openapi
+   * /usuarios/{username}/billetera:
+   *    post:
+   *      description: Crea una billetera a un usuario
+   *      consumes:
+   *          - application/json
+   *      produces:
+   *          - application/json
+   *      parameters:
+   *          - in: path
+   *            name: username
+   *            schema:
+   *               type: string
+   *            required: true
+   *      responses:
+   *          201:
+   *              description: Devuelve la billetera creada
+   */
   app.post('/usuarios/:username/billetera', async (req, res) => {
     const user = await db.usuarios.findByUsername(req.params.username)
 
@@ -530,6 +549,30 @@ module.exports.setup = (app, db) => {
       })
   })
 
+  /**
+   * @openapi
+   * /usuarios/{username}/suscripcion/{tipoSuscripcion}:
+   *    post:
+   *      description: Suscribe al usuario a una suscripcion paga
+   *      consumes:
+   *          - application/json
+   *      produces:
+   *          - application/json
+   *      parameters:
+   *          - in: path
+   *            name: username
+   *            schema:
+   *               type: string
+   *            required: true
+   *          - in: path
+   *            name: tipoSuscripcion
+   *            schema:
+   *               type: string
+   *            required: true
+   *      responses:
+   *          200:
+   *              description: Devuelve el usuario actualizado
+   */
   app.post('/usuarios/:username/suscripcion/:tipoSuscripcion', async (req, res) => {
     if (req.params.tipoSuscripcion !== 'premium' && req.params.tipoSuscripcion !== 'vip') {
       return res.status(400).json({
@@ -547,14 +590,14 @@ module.exports.setup = (app, db) => {
       })
     }
 
-    if (user.tipoSuscripcion === 'vip') {
+    if (user.tipo_suscripcion === 'vip') {
       return res.status(400).json({
         success: false,
         error: 'Usuario ya tiene la suscripción más alta.'
       })
     }
 
-    if (user.tipoSuscripcion === 'premium' && req.params.tipoSuscripcion === 'premium') {
+    if (user.tipo_suscripcion === 'premium' && req.params.tipoSuscripcion === 'premium') {
       return res.status(400).json({
         success: false,
         error: 'Usuario ya posee esa suscripción.'
