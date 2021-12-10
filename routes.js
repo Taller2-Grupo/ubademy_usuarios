@@ -519,6 +519,15 @@ module.exports.setup = (app, db) => {
    *              description: Devuelve la billetera creada
    */
   app.post('/usuarios/:username/billetera', async (req, res) => {
+    const headerApiKey = req.get('X-API-KEY')
+
+    if (!apiKeyIsValid(headerApiKey)) {
+      return res.status(401).json({
+        success: false,
+        error: 'API Key invalida'
+      })
+    }
+
     const user = await db.usuarios.findByUsername(req.params.username)
 
     if (user === null) {
@@ -574,6 +583,15 @@ module.exports.setup = (app, db) => {
    *              description: Devuelve el usuario actualizado
    */
   app.post('/usuarios/:username/suscripcion/:tipoSuscripcion', async (req, res) => {
+    const headerApiKey = req.get('X-API-KEY')
+
+    if (!apiKeyIsValid(headerApiKey)) {
+      return res.status(401).json({
+        success: false,
+        error: 'API Key invalida'
+      })
+    }
+
     if (req.params.tipoSuscripcion !== 'premium' && req.params.tipoSuscripcion !== 'vip') {
       return res.status(400).json({
         success: false,
