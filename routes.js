@@ -553,7 +553,6 @@ module.exports.setup = (app, db) => {
         res.status(201).json(billetera)
       })
       .catch(error => {
-        console.error(error)
         res.status(500).json(error)
       })
   })
@@ -644,7 +643,7 @@ module.exports.setup = (app, db) => {
       })
       .catch(error => {
         console.error(error)
-        if (error.response?.data.code === 'INSUFFICIENT_FUNDS') {
+        if (error.response !== null && error.response.data.code === 'INSUFFICIENT_FUNDS') {
           res.status(400).json({
             success: false,
             error: 'Fondos insuficientes en la billetera.'
