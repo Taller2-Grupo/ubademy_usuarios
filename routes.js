@@ -531,11 +531,83 @@ module.exports.setup = (app, db) => {
   })
 
   app.post('/usuarios/:username/suscripcion/:tipoSuscripcion', async (req, res) => {
-    // TODO: Ir a buscar usuario.
-    // TODO: Crear si tiene fondos suficientes.
-    // TODO: Hacer un deposit en api payments por la cantidad segun tipoSuscripcion.
-    // TODO: Actualizar entidad usuario y billetera con la suscripcion correspondiente.
+    if (req.params.tipoSuscripcion !== 'premium' && req.params.tipoSuscripcion !== 'vip') {
+      return res.status(400).json({
+        success: false,
+        error: 'El tipo de suscripción no es válido.'
+      })
+    }
+
+    const user = await db.usuarios.findByUsername(req.params.username)
+
+    if (user === null) {
+      return res.status(404).json({
+        success: false,
+        error: 'Usuario no encontrado.'
+      })
+    }
+
+    if (user.tipoSuscripcion === 'vip') {
+      return res.status(400).json({
+        success: false,
+        error: 'Usuario ya tiene la suscripción más alta.'
+      })
+    }
+
+    if (user.tipoSuscripcion === 'premium' && req.params.tipoSuscripcion === 'premium') {
+      return res.status(400).json({
+        success: false,
+        error: 'Usuario ya posee esa suscripción.'
+      })
+    }
+
+    const billetera = await db.usuarios.findBilleteraByUsername(req.params.username)
+
+    if (billetera === null) {
+      return res.status(400).json({
+        success: false,
+        error: 'El usuario no tiene una billetera.'
+      })
+    }
+
+    const amountInEthers = getAmountByTipoSuscripcion(req.params.tipoSuscripcion)
+
+    axios
+      .post('https://ubademy-smart-contract.herokuapp.com/deposit', {
+        privateKey: billetera.private_key,
+        amountInEthers: amountInEthers
+      })
+      .then(async resp => {
+        const usuarioActualizado = await db.usuarios.updateTipoSuscripcion(req.params.username, req.params.tipoSuscripcion)
+        res.status(200).json(usuarioActualizado)
+      })
+      .catch(error => {
+        console.error(error)
+        if (error.response?.data.code === 'INSUFFICIENT_FUNDS') {
+          res.status(400).json({
+            success: false,
+            error: 'Fondos insuficientes en la billetera.'
+          })
+        } else {
+          res.status(500).json({
+            success: false,
+            error: error
+          })
+        }
+      })
   })
+
+  function getAmountByTipoSuscripcion (tipoSuscripcion) {
+    if (tipoSuscripcion === 'premium') {
+      return '0.0001'
+    }
+
+    if (tipoSuscripcion === 'vip') {
+      return '0.0002'
+    }
+
+    return '0'
+  }
 }
 
 function internalError (res, error) {

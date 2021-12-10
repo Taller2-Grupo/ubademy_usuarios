@@ -58,6 +58,10 @@ class UsuariosRepository {
   async addBilletera (username, address, privateKey) {
     return this.db.one('INSERT INTO billeteras("username", "address", "private_key") VALUES($1, $2, $3) RETURNING *', [username, address, privateKey])
   }
+
+  async updateTipoSuscripcion (username, tipoSuscripcion) {
+    return this.db.one('UPDATE usuarios SET tipo_suscripcion=$2, "fechaActualizacion" = current_date WHERE username=$1 RETURNING *', [username, tipoSuscripcion])
+  }
 }
 
 module.exports = UsuariosRepository
