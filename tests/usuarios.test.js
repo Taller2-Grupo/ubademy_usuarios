@@ -4,8 +4,11 @@ const { describe } = require('jest-circus')
 const supertest = require('supertest')
 const { pgp } = require('../db')
 const { app, server } = require('../index')
+const axios = require('axios')
 
 const api = supertest(app)
+
+jest.mock('axios')
 
 describe('Get a /usuarios', () => {
   it('devuelve 200 siempre.', async () => {
@@ -417,6 +420,359 @@ describe('Patch a /usuarios/activar/username', () => {
 
     await api
       .get('/usuarios/activar/string')
+      .expect(404)
+  })
+})
+
+describe('Post a /usuarios/{username}/billetera', () => {
+  test('devuelve 201 con username existente sin billetera.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    const newUsername = await crearUsuario()
+
+    axios.post.mockImplementation(() => Promise.resolve({
+      data: {
+        address: 'address.test',
+        privateKey: 'privateKey.test'
+      }
+    }))
+
+    await api
+      .post('/usuarios/' + newUsername + '/billetera')
+      .set('X-API-KEY', process.env.API_KEY)
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .expect(201)
+  })
+
+  test('devuelve 400 si ya existe billetera para el usuario.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    const newUsername = await crearUsuario()
+
+    axios.post.mockImplementation(() => Promise.resolve({
+      data: {
+        address: 'address.test',
+        privateKey: 'privateKey.test'
+      }
+    }))
+
+    await api
+      .post('/usuarios/' + newUsername + '/billetera')
+      .set('X-API-KEY', process.env.API_KEY)
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .expect(201)
+
+    await api
+      .post('/usuarios/' + newUsername + '/billetera')
+      .set('X-API-KEY', process.env.API_KEY)
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .expect(400)
+  })
+
+  test('devuelve 401 sin api key.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    const newUsername = await crearUsuario()
+
+    axios.post.mockImplementation(() => Promise.resolve({
+      data: {
+        address: 'address.test',
+        privateKey: 'privateKey.test'
+      }
+    }))
+
+    await api
+      .post('/usuarios/' + newUsername + '/billetera')
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .expect(401)
+  })
+
+  test('devuelve 201 con api key desactivada.', async () => {
+    process.env.API_KEY_ENABLED = false
+
+    const newUsername = await crearUsuario()
+
+    axios.post.mockImplementation(() => Promise.resolve({
+      data: {
+        address: 'address.test',
+        privateKey: 'privateKey.test'
+      }
+    }))
+
+    await api
+      .post('/usuarios/' + newUsername + '/billetera')
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .expect(201)
+  })
+
+  test('devuelve 404 con username inexistente.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    axios.post.mockImplementation(() => Promise.resolve({
+      data: {
+        address: 'address.test',
+        privateKey: 'privateKey.test'
+      }
+    }))
+
+    await api
+      .post('/usuarios/' + 'wwwwwwwwwww' + '/billetera')
+      .set('X-API-KEY', process.env.API_KEY)
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .expect(404)
+  })
+})
+
+describe('Post a /usuarios/{username}/suscripcion/{tipoSuscripcion}', () => {
+  test('devuelve 200 caso feliz premium.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    const newUsername = await crearUsuario()
+
+    axios.post.mockImplementation(() => Promise.resolve({
+      data: {
+        address: 'address.test',
+        privateKey: 'privateKey.test'
+      }
+    }))
+
+    await api
+      .post('/usuarios/' + newUsername + '/billetera')
+      .set('X-API-KEY', process.env.API_KEY)
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+
+    axios.post.mockImplementation(() => Promise.resolve())
+
+    await api
+      .post('/usuarios/' + newUsername + '/suscripcion/premium')
+      .set('X-API-KEY', process.env.API_KEY)
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .expect(200)
+  })
+
+  test('devuelve 200 caso feliz vip.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    const newUsername = await crearUsuario()
+
+    axios.post.mockImplementation(() => Promise.resolve({
+      data: {
+        address: 'address.test',
+        privateKey: 'privateKey.test'
+      }
+    }))
+
+    await api
+      .post('/usuarios/' + newUsername + '/billetera')
+      .set('X-API-KEY', process.env.API_KEY)
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+
+    axios.post.mockImplementation(() => Promise.resolve())
+
+    await api
+      .post('/usuarios/' + newUsername + '/suscripcion/vip')
+      .set('X-API-KEY', process.env.API_KEY)
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .expect(200)
+  })
+
+  test('devuelve 400 si ya es vip.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    const newUsername = await crearUsuario()
+
+    axios.post.mockImplementation(() => Promise.resolve({
+      data: {
+        address: 'address.test',
+        privateKey: 'privateKey.test'
+      }
+    }))
+
+    await api
+      .post('/usuarios/' + newUsername + '/billetera')
+      .set('X-API-KEY', process.env.API_KEY)
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+
+    axios.post.mockImplementation(() => Promise.resolve())
+
+    await api
+      .post('/usuarios/' + newUsername + '/suscripcion/vip')
+      .set('X-API-KEY', process.env.API_KEY)
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+
+    await api
+      .post('/usuarios/' + newUsername + '/suscripcion/premium')
+      .set('X-API-KEY', process.env.API_KEY)
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .expect(400)
+  })
+
+  test('devuelve 400 si quiere suscribire a premium y ya es premium.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    const newUsername = await crearUsuario()
+
+    axios.post.mockImplementation(() => Promise.resolve({
+      data: {
+        address: 'address.test',
+        privateKey: 'privateKey.test'
+      }
+    }))
+
+    await api
+      .post('/usuarios/' + newUsername + '/billetera')
+      .set('X-API-KEY', process.env.API_KEY)
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+
+    axios.post.mockImplementation(() => Promise.resolve())
+
+    await api
+      .post('/usuarios/' + newUsername + '/suscripcion/premium')
+      .set('X-API-KEY', process.env.API_KEY)
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+
+    await api
+      .post('/usuarios/' + newUsername + '/suscripcion/premium')
+      .set('X-API-KEY', process.env.API_KEY)
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .expect(400)
+  })
+
+  test('devuelve 400 con tipo suscripcion inexistente.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    const newUsername = await crearUsuario()
+
+    axios.post.mockImplementation(() => Promise.resolve({
+      data: {
+        address: 'address.test',
+        privateKey: 'privateKey.test'
+      }
+    }))
+
+    await api
+      .post('/usuarios/' + newUsername + '/billetera')
+      .set('X-API-KEY', process.env.API_KEY)
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+
+    axios.post.mockImplementation(() => Promise.resolve())
+
+    await api
+      .post('/usuarios/' + newUsername + '/suscripcion/suscripcionInexistente')
+      .set('X-API-KEY', process.env.API_KEY)
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .expect(400)
+  })
+
+  test('devuelve 400 si no existe billetera para el usuario.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    const newUsername = await crearUsuario()
+
+    axios.post.mockImplementation(() => Promise.resolve({
+      data: {
+        address: 'address.test',
+        privateKey: 'privateKey.test'
+      }
+    }))
+
+    axios.post.mockImplementation(() => Promise.resolve())
+
+    await api
+      .post('/usuarios/' + newUsername + '/suscripcion/premium')
+      .set('X-API-KEY', process.env.API_KEY)
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .expect(400)
+  })
+
+  test('devuelve 401 sin api key.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    const newUsername = await crearUsuario()
+
+    await api
+      .post('/usuarios/' + newUsername + '/billetera')
+      .set('X-API-KEY', process.env.API_KEY)
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+
+    axios.post.mockImplementation(() => Promise.resolve())
+
+    await api
+      .post('/usuarios/' + newUsername + '/suscripcion/premium')
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .expect(401)
+  })
+
+  test('devuelve 200 con api key desactivada.', async () => {
+    process.env.API_KEY_ENABLED = false
+
+    const newUsername = await crearUsuario()
+
+    axios.post.mockImplementation(() => Promise.resolve({
+      data: {
+        address: 'address.test',
+        privateKey: 'privateKey.test'
+      }
+    }))
+
+    await api
+      .post('/usuarios/' + newUsername + '/billetera')
+      .set('X-API-KEY', process.env.API_KEY)
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+
+    axios.post.mockImplementation(() => Promise.resolve())
+
+    await api
+      .post('/usuarios/' + newUsername + '/suscripcion/vip')
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
+      .expect(200)
+  })
+
+  test('devuelve 404 con usuario inexistente.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    axios.post.mockImplementation(() => Promise.resolve())
+
+    await api
+      .post('/usuarios/' + 'wwwwwwwwwwwwww' + '/suscripcion/premium')
+      .set('X-API-KEY', process.env.API_KEY)
+      .set('Content-Type', 'application/json')
+      .set('Accept', 'application/json')
       .expect(404)
   })
 })

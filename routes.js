@@ -1,5 +1,6 @@
 const { validateEmail } = require('./utils')
 const { apiKeyIsValid } = require('./auth')
+const axios = require('axios')
 
 module.exports.setup = (app, db) => {
   /**
@@ -497,6 +498,176 @@ module.exports.setup = (app, db) => {
         internalError(res, error)
       })
   })
+
+  /**
+   * @openapi
+   * /usuarios/{username}/billetera:
+   *    post:
+   *      description: Crea una billetera a un usuario
+   *      consumes:
+   *          - application/json
+   *      produces:
+   *          - application/json
+   *      parameters:
+   *          - in: path
+   *            name: username
+   *            schema:
+   *               type: string
+   *            required: true
+   *      responses:
+   *          201:
+   *              description: Devuelve la billetera creada
+   */
+  app.post('/usuarios/:username/billetera', async (req, res) => {
+    const headerApiKey = req.get('X-API-KEY')
+
+    if (!apiKeyIsValid(headerApiKey)) {
+      return res.status(401).json({
+        success: false,
+        error: 'API Key invalida'
+      })
+    }
+
+    const user = await db.usuarios.findByUsername(req.params.username)
+
+    if (user === null) {
+      return res.status(404).json({
+        success: false,
+        error: 'Usuario no encontrado.'
+      })
+    }
+
+    const billeteraExistente = await db.usuarios.findBilleteraByUsername(req.params.username)
+
+    if (billeteraExistente !== null) {
+      return res.status(400).json({
+        success: false,
+        error: 'Billetera ya existe.'
+      })
+    }
+
+    axios
+      .post('https://ubademy-smart-contract.herokuapp.com/wallet', {})
+      .then(async resp => {
+        const billetera = await db.usuarios.addBilletera(req.params.username, resp.data.address, resp.data.privateKey)
+        res.status(201).json(billetera)
+      })
+      .catch(error => {
+        res.status(500).json(error)
+      })
+  })
+
+  /**
+   * @openapi
+   * /usuarios/{username}/suscripcion/{tipoSuscripcion}:
+   *    post:
+   *      description: Suscribe al usuario a una suscripcion paga
+   *      consumes:
+   *          - application/json
+   *      produces:
+   *          - application/json
+   *      parameters:
+   *          - in: path
+   *            name: username
+   *            schema:
+   *               type: string
+   *            required: true
+   *          - in: path
+   *            name: tipoSuscripcion
+   *            schema:
+   *               type: string
+   *            required: true
+   *      responses:
+   *          200:
+   *              description: Devuelve el usuario actualizado
+   */
+  app.post('/usuarios/:username/suscripcion/:tipoSuscripcion', async (req, res) => {
+    const headerApiKey = req.get('X-API-KEY')
+
+    if (!apiKeyIsValid(headerApiKey)) {
+      return res.status(401).json({
+        success: false,
+        error: 'API Key invalida'
+      })
+    }
+
+    if (req.params.tipoSuscripcion !== 'premium' && req.params.tipoSuscripcion !== 'vip') {
+      return res.status(400).json({
+        success: false,
+        error: 'El tipo de suscripción no es válido.'
+      })
+    }
+
+    const user = await db.usuarios.findByUsername(req.params.username)
+
+    if (user === null) {
+      return res.status(404).json({
+        success: false,
+        error: 'Usuario no encontrado.'
+      })
+    }
+
+    if (user.tipo_suscripcion === 'vip') {
+      return res.status(400).json({
+        success: false,
+        error: 'Usuario ya tiene la suscripción más alta.'
+      })
+    }
+
+    if (user.tipo_suscripcion === 'premium' && req.params.tipoSuscripcion === 'premium') {
+      return res.status(400).json({
+        success: false,
+        error: 'Usuario ya posee esa suscripción.'
+      })
+    }
+
+    const billetera = await db.usuarios.findBilleteraByUsername(req.params.username)
+
+    if (billetera === null) {
+      return res.status(400).json({
+        success: false,
+        error: 'El usuario no tiene una billetera.'
+      })
+    }
+
+    const amountInEthers = getAmountByTipoSuscripcion(req.params.tipoSuscripcion)
+
+    axios
+      .post('https://ubademy-smart-contract.herokuapp.com/deposit', {
+        privateKey: billetera.private_key,
+        amountInEthers: amountInEthers
+      })
+      .then(async resp => {
+        const usuarioActualizado = await db.usuarios.updateTipoSuscripcion(req.params.username, req.params.tipoSuscripcion)
+        res.status(200).json(usuarioActualizado)
+      })
+      .catch(error => {
+        console.error(error)
+        if (error.response !== null && error.response.data.code === 'INSUFFICIENT_FUNDS') {
+          res.status(400).json({
+            success: false,
+            error: 'Fondos insuficientes en la billetera.'
+          })
+        } else {
+          res.status(500).json({
+            success: false,
+            error: error
+          })
+        }
+      })
+  })
+
+  function getAmountByTipoSuscripcion (tipoSuscripcion) {
+    if (tipoSuscripcion === 'premium') {
+      return '0.0001'
+    }
+
+    if (tipoSuscripcion === 'vip') {
+      return '0.0002'
+    }
+
+    return '0'
+  }
 }
 
 function internalError (res, error) {

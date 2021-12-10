@@ -6,7 +6,6 @@ class UsuariosRepository {
     this.pgp = pgp
   }
 
-  // Adds a new user, and returns the new object;
   async add (username, password, nombre, apellido, esAdmin) {
     return this.db.one(sql.add, [username, password, nombre, apellido, esAdmin])
   }
@@ -16,12 +15,10 @@ class UsuariosRepository {
   //   return this.db.oneOrNone('SELECT * FROM usuarios WHERE id = $1', +id)
   // }
 
-  // Tries to find a user from name;
   async findByUsername (username) {
     return this.db.oneOrNone('SELECT * FROM usuarios WHERE username = $1', username)
   }
 
-  // Returns all user records;
   async all () {
     return this.db.any('SELECT * FROM usuarios')
   }
@@ -52,6 +49,18 @@ class UsuariosRepository {
 
   async activar (username) {
     return this.db.oneOrNone('UPDATE usuarios SET "estado" = $2 WHERE "username" = $1 RETURNING *', [username, 'activo'])
+  }
+
+  async findBilleteraByUsername (username) {
+    return this.db.oneOrNone('SELECT * FROM billeteras WHERE username = $1', username)
+  }
+
+  async addBilletera (username, address, privateKey) {
+    return this.db.one('INSERT INTO billeteras("username", "address", "private_key") VALUES($1, $2, $3) RETURNING *', [username, address, privateKey])
+  }
+
+  async updateTipoSuscripcion (username, tipoSuscripcion) {
+    return this.db.one('UPDATE usuarios SET tipo_suscripcion=$2, "fechaActualizacion" = current_date WHERE username=$1 RETURNING *', [username, tipoSuscripcion])
   }
 }
 
