@@ -711,6 +711,72 @@ module.exports.setup = (app, db) => {
     }
   })
 
+  /**
+   * @openapi
+   * /eventos:
+   *    get:
+   *      description: Crea un evento del tipo indicado
+   *      consumes:
+   *          - application/json
+   *      produces:
+   *          - application/json
+   *      parameters:
+   *          - in: query
+   *            name: tipoEvento
+   *            schema:
+   *               type: string
+   *            required: false
+   *          - in: query
+   *            name: diasAtras
+   *            schema:
+   *               type: string
+   *            required: false
+   *      responses:
+   *          201:
+   *              description: Devuelve el evento creado
+   */
+  app.get('/eventos', async (req, res) => {
+    const headerApiKey = req.get('X-API-KEY')
+
+    if (!apiKeyIsValid(headerApiKey)) {
+      return res.status(401).json({
+        success: false,
+        error: 'API Key invalida'
+      })
+    }
+
+    const tipoEvento = req.query.tipoEvento
+    let diasAtras = req.query.diasAtras
+
+    if (diasAtras === undefined) {
+      diasAtras = 7
+    }
+
+    if (tipoEvento !== undefined && !esTipoEvento(tipoEvento)) {
+      return res.status(400).json({
+        success: false,
+        error: 'El tipo evento no es válido.'
+      })
+    }
+
+    if (diasAtras < 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Debe indicar una cantidad de dias atras positiva.'
+      })
+    }
+
+    try {
+      const data = await db.eventos.getEventosDiarios(tipoEvento, diasAtras)
+      res.status(201).json({
+        success: true,
+        data
+      })
+    } catch (error) {
+      internalError(res, error)
+    }
+  })
+
   async function registrarEvento (tipoEvento) {
     try {
       const evento = await db.eventos.add(tipoEvento)

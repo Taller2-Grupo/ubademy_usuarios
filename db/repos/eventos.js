@@ -40,6 +40,20 @@ class EventosRepository {
 
     return this.db.one('UPDATE eventos_diarios SET "cantidad" = "cantidad" + 1 WHERE "tipoEvento"=$1 AND "fecha"=$2 RETURNING *', [evento.tipoEvento, fechaCreacionSinHora])
   }
+
+  async getEventosDiarios (tipoEvento, diasAtras) {
+    const fechaDesde = new Date()
+    fechaDesde.setDate(fechaDesde.getDate() - diasAtras)
+    fechaDesde.setHours(0, 0, 0, 0)
+
+    let query = 'SELECT * FROM eventos_diarios WHERE "fecha" >= $1'
+
+    if (tipoEvento !== undefined) {
+      query += ' AND "tipoEvento" = $2'
+    }
+
+    return this.db.manyOrNone(query, [fechaDesde, tipoEvento])
+  }
 }
 
 module.exports = EventosRepository
