@@ -768,7 +768,7 @@ module.exports.setup = (app, db) => {
 
     try {
       const data = await db.eventos.getEventosDiarios(tipoEvento, diasAtras)
-      res.status(201).json({
+      res.status(200).json({
         success: true,
         data
       })
