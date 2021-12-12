@@ -701,10 +701,13 @@ module.exports.setup = (app, db) => {
     }
 
     try {
-      const data = await db.eventos.add(tipoEvento)
+      const evento = await db.eventos.add(tipoEvento)
+      registrarEventoDiario(evento)
+      registrarEventoPorHora(evento)
+
       res.status(201).json({
         success: true,
-        data
+        evento
       })
     } catch (error) {
       internalError(res, error)
@@ -713,7 +716,7 @@ module.exports.setup = (app, db) => {
 
   /**
    * @openapi
-   * /eventos:
+   * /eventos/diarios:
    *    get:
    *      description: Crea un evento del tipo indicado
    *      consumes:
@@ -732,10 +735,10 @@ module.exports.setup = (app, db) => {
    *               type: string
    *            required: false
    *      responses:
-   *          201:
-   *              description: Devuelve el evento creado
+   *          200:
+   *              description: Devuelve metricas de los eventos segun los parametros
    */
-  app.get('/eventos', async (req, res) => {
+  app.get('/eventos/diarios', async (req, res) => {
     const headerApiKey = req.get('X-API-KEY')
 
     if (!apiKeyIsValid(headerApiKey)) {
@@ -777,10 +780,77 @@ module.exports.setup = (app, db) => {
     }
   })
 
+  /**
+   * @openapi
+   * /eventos/por_hora:
+   *    get:
+   *      description: Crea un evento del tipo indicado
+   *      consumes:
+   *          - application/json
+   *      produces:
+   *          - application/json
+   *      parameters:
+   *          - in: query
+   *            name: tipoEvento
+   *            schema:
+   *               type: string
+   *            required: false
+   *          - in: query
+   *            name: horasAtras
+   *            schema:
+   *               type: string
+   *            required: false
+   *      responses:
+   *          200:
+   *              description: Devuelve metricas de los eventos segun los parametros
+   */
+  app.get('/eventos/por_hora', async (req, res) => {
+    const headerApiKey = req.get('X-API-KEY')
+
+    if (!apiKeyIsValid(headerApiKey)) {
+      return res.status(401).json({
+        success: false,
+        error: 'API Key invalida'
+      })
+    }
+
+    const tipoEvento = req.query.tipoEvento
+    let horasAtras = req.query.horasAtras
+
+    if (horasAtras === undefined) {
+      horasAtras = 8
+    }
+
+    if (tipoEvento !== undefined && !esTipoEvento(tipoEvento)) {
+      return res.status(400).json({
+        success: false,
+        error: 'El tipo evento no es válido.'
+      })
+    }
+
+    if (horasAtras < 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Debe indicar una cantidad de horas atras positiva.'
+      })
+    }
+
+    try {
+      const data = await db.eventos.getEventosPorHora(tipoEvento, horasAtras)
+      res.status(200).json({
+        success: true,
+        data
+      })
+    } catch (error) {
+      internalError(res, error)
+    }
+  })
+
   async function registrarEvento (tipoEvento) {
     try {
       const evento = await db.eventos.add(tipoEvento)
       registrarEventoDiario(evento)
+      registrarEventoPorHora(evento)
       return evento
     } catch {
       console.log('Ocurrió un error registrando el evento ' + tipoEvento)
@@ -795,9 +865,23 @@ module.exports.setup = (app, db) => {
         await db.eventos.addEventoDiario(evento)
       }
 
-      return db.eventos.increaseEventoDiario(evento)
+      return await db.eventos.increaseEventoDiario(evento)
     } catch {
       console.log('Ocurrió un error registrando el evento diario del evento con id ' + evento.id)
+    }
+  }
+
+  async function registrarEventoPorHora (evento) {
+    try {
+      const eventoPorHora = await db.eventos.getEventoPorHora(evento)
+
+      if (eventoPorHora === null) {
+        await db.eventos.addEventoPorHora(evento)
+      }
+
+      return await db.eventos.increaseEventoPorHora(evento)
+    } catch {
+      console.log('Ocurrió un error registrando el evento por hora del evento con id ' + evento.id)
     }
   }
 }

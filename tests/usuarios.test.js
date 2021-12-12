@@ -822,7 +822,7 @@ describe('Post a /eventos/{tipoEvento}', () => {
       process.env.API_KEY = 'test'
 
       await api
-        .get('/eventos?tipoEvento=EVENTO_INEXISTENTE')
+        .get('/eventos/diarios?tipoEvento=EVENTO_INEXISTENTE')
         .set('X-API-KEY', process.env.API_KEY)
         .expect(400)
     })
@@ -832,7 +832,7 @@ describe('Post a /eventos/{tipoEvento}', () => {
       process.env.API_KEY = 'test'
 
       await api
-        .get('/eventos?diasAtras=-1')
+        .get('/eventos/diarios?diasAtras=-1')
         .set('X-API-KEY', process.env.API_KEY)
         .expect(400)
     })
@@ -842,7 +842,7 @@ describe('Post a /eventos/{tipoEvento}', () => {
       process.env.API_KEY = 'test'
 
       await api
-        .get('/eventos?tipoEvento=' + TipoEvento.USUARIO_CREADO)
+        .get('/eventos/diarios?tipoEvento=' + TipoEvento.USUARIO_CREADO)
         .set('X-API-KEY', process.env.API_KEY)
         .expect(200)
     })
@@ -852,7 +852,7 @@ describe('Post a /eventos/{tipoEvento}', () => {
       process.env.API_KEY = 'test'
 
       await api
-        .get('/eventos')
+        .get('/eventos/diarios')
         .set('X-API-KEY', process.env.API_KEY)
         .expect(200)
     })
@@ -862,7 +862,7 @@ describe('Post a /eventos/{tipoEvento}', () => {
       process.env.API_KEY = 'test'
 
       await api
-        .get('/eventos')
+        .get('/eventos/diarios')
         .expect(401)
     })
 
@@ -870,7 +870,7 @@ describe('Post a /eventos/{tipoEvento}', () => {
       process.env.API_KEY_ENABLED = false
 
       await api
-        .get('/eventos')
+        .get('/eventos/diarios')
         .expect(200)
     })
   })

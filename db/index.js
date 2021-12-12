@@ -30,6 +30,12 @@ if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'test') {
   }
 }
 
-const db = pgp(connectionString)
+const cn = {
+  connectionString: connectionString,
+  poolSize: 3,
+  poolIdleTimeout: 10000
+}
+
+const db = pgp(cn)
 
 module.exports = { db, pgp }
