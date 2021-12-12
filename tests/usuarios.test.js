@@ -5,6 +5,7 @@ const supertest = require('supertest')
 const { pgp } = require('../db')
 const { app, server } = require('../index')
 const axios = require('axios')
+const { TipoEvento } = require('../enums')
 
 const api = supertest(app)
 
@@ -774,6 +775,45 @@ describe('Post a /usuarios/{username}/suscripcion/{tipoSuscripcion}', () => {
       .set('Content-Type', 'application/json')
       .set('Accept', 'application/json')
       .expect(404)
+  })
+})
+
+describe('Post a /eventos/{tipoEvento}', () => {
+  test('devuelve 400 con tipoEvento inexistente.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    await api
+      .post('/eventos/EVENTO_INEXISTENTE')
+      .set('X-API-KEY', process.env.API_KEY)
+      .expect(400)
+  })
+
+  test('devuelve 201 con tipoEvento existente.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    await api
+      .post('/eventos/' + TipoEvento.LOGIN_GOOGLE)
+      .set('X-API-KEY', process.env.API_KEY)
+      .expect(201)
+  })
+
+  test('devuelve 401 sin api key.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    await api
+      .post('/eventos/' + TipoEvento.LOGIN_GOOGLE)
+      .expect(401)
+  })
+
+  test('devuelve 201 con api key desactivada.', async () => {
+    process.env.API_KEY_ENABLED = false
+
+    await api
+      .post('/eventos/' + TipoEvento.LOGIN_GOOGLE)
+      .expect(201)
   })
 })
 

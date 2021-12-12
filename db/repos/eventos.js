@@ -1,5 +1,3 @@
-// Evento: TipoEvento, FechaEjecucion
-
 class EventosRepository {
   constructor (db, pgp) {
     this.db = db
