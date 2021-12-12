@@ -1,6 +1,7 @@
 const { validateEmail } = require('./utils')
 const { apiKeyIsValid } = require('./auth')
 const axios = require('axios')
+const TipoEvento = require('./enums')
 
 module.exports.setup = (app, db) => {
   /**
@@ -77,6 +78,13 @@ module.exports.setup = (app, db) => {
 
     try {
       const data = await db.usuarios.add(body.username, body.password, body.nombre, body.apellido, body.esAdmin)
+
+      try {
+        await db.eventos.add(TipoEvento.USUARIO_CREADO)
+      } catch {
+        console.log('Ocurrió un error registrando el evento de creación de usuario.')
+      }
+
       res.status(201).json({
         success: true,
         data
