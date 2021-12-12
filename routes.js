@@ -713,9 +713,25 @@ module.exports.setup = (app, db) => {
 
   async function registrarEvento (tipoEvento) {
     try {
-      return await db.eventos.add(tipoEvento)
+      const evento = await db.eventos.add(tipoEvento)
+      registrarEventoDiario(evento)
+      return evento
     } catch {
       console.log('Ocurrió un error registrando el evento ' + tipoEvento)
+    }
+  }
+
+  async function registrarEventoDiario (evento) {
+    try {
+      const eventoDiario = await db.eventos.getEventoDiario(evento)
+
+      if (eventoDiario === null) {
+        await db.eventos.addEventoDiario(evento)
+      }
+
+      return db.eventos.increaseEventoDiario(evento)
+    } catch {
+      console.log('Ocurrió un error registrando el evento diario del evento con id ' + evento.id)
     }
   }
 }
