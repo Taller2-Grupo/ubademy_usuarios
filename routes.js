@@ -1,7 +1,7 @@
 const { validateEmail } = require('./utils')
 const { apiKeyIsValid } = require('./auth')
 const axios = require('axios')
-const TipoEvento = require('./enums')
+const { TipoEvento, esTipoEvento } = require('./enums')
 
 module.exports.setup = (app, db) => {
   /**
@@ -79,11 +79,7 @@ module.exports.setup = (app, db) => {
     try {
       const data = await db.usuarios.add(body.username, body.password, body.nombre, body.apellido, body.esAdmin)
 
-      try {
-        await db.eventos.add(TipoEvento.USUARIO_CREADO)
-      } catch {
-        console.log('Ocurrió un error registrando el evento de creación de usuario.')
-      }
+      await registrarEvento(TipoEvento.USUARIO_CREADO)
 
       res.status(201).json({
         success: true,
@@ -453,6 +449,7 @@ module.exports.setup = (app, db) => {
 
     db.usuarios.bloquear(req.params.username)
       .then(function (usuarioBloqueado) {
+        registrarEvento(TipoEvento.USUARIO_BLOQUEADO)
         res.status(200).json(usuarioBloqueado)
       })
       .catch(function (error) {
@@ -665,17 +662,74 @@ module.exports.setup = (app, db) => {
       })
   })
 
-  function getAmountByTipoSuscripcion (tipoSuscripcion) {
-    if (tipoSuscripcion === 'premium') {
-      return '0.0001'
+  /**
+   * @openapi
+   * /eventos/{tipoEvento}:
+   *    post:
+   *      description: Crea un evento del tipo indicado
+   *      consumes:
+   *          - application/json
+   *      produces:
+   *          - application/json
+   *      parameters:
+   *          - in: path
+   *            name: tipoEvento
+   *            schema:
+   *               type: string
+   *            required: true
+   *      responses:
+   *          201:
+   *              description: Devuelve el evento creado
+   */
+  app.post('/eventos/:tipoEvento', async (req, res) => {
+    const headerApiKey = req.get('X-API-KEY')
+
+    if (!apiKeyIsValid(headerApiKey)) {
+      return res.status(401).json({
+        success: false,
+        error: 'API Key invalida'
+      })
     }
 
-    if (tipoSuscripcion === 'vip') {
-      return '0.0002'
+    const tipoEvento = req.params.tipoEvento
+
+    if (!esTipoEvento(tipoEvento)) {
+      return res.status(400).json({
+        success: false,
+        error: 'El tipo evento no es válido.'
+      })
     }
 
-    return '0'
+    try {
+      const data = await db.eventos.add(tipoEvento)
+      res.status(201).json({
+        success: true,
+        data
+      })
+    } catch (error) {
+      internalError(res, error)
+    }
+  })
+
+  async function registrarEvento (tipoEvento) {
+    try {
+      return await db.eventos.add(tipoEvento)
+    } catch {
+      console.log('Ocurrió un error registrando el evento ' + tipoEvento)
+    }
   }
+}
+
+function getAmountByTipoSuscripcion (tipoSuscripcion) {
+  if (tipoSuscripcion === 'premium') {
+    return '0.0001'
+  }
+
+  if (tipoSuscripcion === 'vip') {
+    return '0.0002'
+  }
+
+  return '0'
 }
 
 function internalError (res, error) {

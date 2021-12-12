@@ -5,4 +5,17 @@ const TipoEvento = {
   USUARIO_BLOQUEADO: 'USUARIO_BLOQUEADO'
 }
 
-module.exports = TipoEvento
+function esTipoEvento (tipoEventoCandidate) {
+  for (const tipoEvento in TipoEvento) {
+    if (tipoEvento === tipoEventoCandidate) {
+      return true
+    }
+  }
+
+  return false
+}
+
+module.exports = {
+  TipoEvento,
+  esTipoEvento
+}
