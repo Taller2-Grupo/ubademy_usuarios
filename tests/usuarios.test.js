@@ -5,6 +5,7 @@ const supertest = require('supertest')
 const { pgp } = require('../db')
 const { app, server } = require('../index')
 const axios = require('axios')
+const { TipoEvento } = require('../enums')
 
 const api = supertest(app)
 
@@ -774,6 +775,163 @@ describe('Post a /usuarios/{username}/suscripcion/{tipoSuscripcion}', () => {
       .set('Content-Type', 'application/json')
       .set('Accept', 'application/json')
       .expect(404)
+  })
+})
+
+describe('Post a /eventos/{tipoEvento}', () => {
+  test('devuelve 400 con tipoEvento inexistente.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    await api
+      .post('/eventos/EVENTO_INEXISTENTE')
+      .set('X-API-KEY', process.env.API_KEY)
+      .expect(400)
+  })
+
+  test('devuelve 201 con tipoEvento existente.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    await api
+      .post('/eventos/' + TipoEvento.LOGIN_GOOGLE)
+      .set('X-API-KEY', process.env.API_KEY)
+      .expect(201)
+  })
+
+  test('devuelve 401 sin api key.', async () => {
+    process.env.API_KEY_ENABLED = true
+    process.env.API_KEY = 'test'
+
+    await api
+      .post('/eventos/' + TipoEvento.LOGIN_GOOGLE)
+      .expect(401)
+  })
+
+  test('devuelve 201 con api key desactivada.', async () => {
+    process.env.API_KEY_ENABLED = false
+
+    await api
+      .post('/eventos/' + TipoEvento.LOGIN_GOOGLE)
+      .expect(201)
+  })
+
+  describe('Get a /eventos/diarios', () => {
+    test('devuelve 400 con tipoEvento inexistente.', async () => {
+      process.env.API_KEY_ENABLED = true
+      process.env.API_KEY = 'test'
+
+      await api
+        .get('/eventos/diarios?tipoEvento=EVENTO_INEXISTENTE')
+        .set('X-API-KEY', process.env.API_KEY)
+        .expect(400)
+    })
+
+    test('devuelve 400 con diasAtras negativo.', async () => {
+      process.env.API_KEY_ENABLED = true
+      process.env.API_KEY = 'test'
+
+      await api
+        .get('/eventos/diarios?diasAtras=-1')
+        .set('X-API-KEY', process.env.API_KEY)
+        .expect(400)
+    })
+
+    test('devuelve 200 con tipoEvento existente.', async () => {
+      process.env.API_KEY_ENABLED = true
+      process.env.API_KEY = 'test'
+
+      await api
+        .get('/eventos/diarios?tipoEvento=' + TipoEvento.USUARIO_CREADO)
+        .set('X-API-KEY', process.env.API_KEY)
+        .expect(200)
+    })
+
+    test('devuelve 200 sin query params.', async () => {
+      process.env.API_KEY_ENABLED = true
+      process.env.API_KEY = 'test'
+
+      await api
+        .get('/eventos/diarios')
+        .set('X-API-KEY', process.env.API_KEY)
+        .expect(200)
+    })
+
+    test('devuelve 401 sin api key.', async () => {
+      process.env.API_KEY_ENABLED = true
+      process.env.API_KEY = 'test'
+
+      await api
+        .get('/eventos/diarios')
+        .expect(401)
+    })
+
+    test('devuelve 200 con api key desactivada.', async () => {
+      process.env.API_KEY_ENABLED = false
+
+      await api
+        .get('/eventos/diarios')
+        .expect(200)
+    })
+  })
+
+  describe('Get a /eventos/por_hora', () => {
+    test('devuelve 400 con tipoEvento inexistente.', async () => {
+      process.env.API_KEY_ENABLED = true
+      process.env.API_KEY = 'test'
+
+      await api
+        .get('/eventos/por_hora?tipoEvento=EVENTO_INEXISTENTE')
+        .set('X-API-KEY', process.env.API_KEY)
+        .expect(400)
+    })
+
+    test('devuelve 400 con horasAtras negativo.', async () => {
+      process.env.API_KEY_ENABLED = true
+      process.env.API_KEY = 'test'
+
+      await api
+        .get('/eventos/por_hora?horasAtras=-1')
+        .set('X-API-KEY', process.env.API_KEY)
+        .expect(400)
+    })
+
+    test('devuelve 200 con tipoEvento existente.', async () => {
+      process.env.API_KEY_ENABLED = true
+      process.env.API_KEY = 'test'
+
+      await api
+        .get('/eventos/por_hora?tipoEvento=' + TipoEvento.USUARIO_CREADO)
+        .set('X-API-KEY', process.env.API_KEY)
+        .expect(200)
+    })
+
+    test('devuelve 200 sin query params.', async () => {
+      process.env.API_KEY_ENABLED = true
+      process.env.API_KEY = 'test'
+
+      await api
+        .get('/eventos/por_hora?tipoEvento=' + TipoEvento.USUARIO_CREADO)
+        .set('X-API-KEY', process.env.API_KEY)
+        .expect(200)
+    })
+
+    test('devuelve 401 sin api key.', async () => {
+      process.env.API_KEY_ENABLED = true
+      process.env.API_KEY = 'test'
+
+      await api
+        .get('/eventos/por_hora?tipoEvento=' + TipoEvento.USUARIO_CREADO)
+        .expect(401)
+    })
+
+    test('devuelve 200 con api key desactivada.', async () => {
+      process.env.API_KEY_ENABLED = false
+
+      await api
+        .get('/eventos/por_hora?tipoEvento=' + TipoEvento.USUARIO_CREADO)
+        .expect(200)
+    })
   })
 })
 

@@ -1,6 +1,7 @@
 const { validateEmail } = require('./utils')
 const { apiKeyIsValid } = require('./auth')
 const axios = require('axios')
+const { TipoEvento, esTipoEvento } = require('./enums')
 
 module.exports.setup = (app, db) => {
   /**
@@ -77,6 +78,9 @@ module.exports.setup = (app, db) => {
 
     try {
       const data = await db.usuarios.add(body.username, body.password, body.nombre, body.apellido, body.esAdmin)
+
+      await registrarEvento(TipoEvento.USUARIO_CREADO)
+
       res.status(201).json({
         success: true,
         data
@@ -445,6 +449,7 @@ module.exports.setup = (app, db) => {
 
     db.usuarios.bloquear(req.params.username)
       .then(function (usuarioBloqueado) {
+        registrarEvento(TipoEvento.USUARIO_BLOQUEADO)
         res.status(200).json(usuarioBloqueado)
       })
       .catch(function (error) {
@@ -657,17 +662,240 @@ module.exports.setup = (app, db) => {
       })
   })
 
-  function getAmountByTipoSuscripcion (tipoSuscripcion) {
-    if (tipoSuscripcion === 'premium') {
-      return '0.0001'
+  /**
+   * @openapi
+   * /eventos/{tipoEvento}:
+   *    post:
+   *      description: Crea un evento del tipo indicado
+   *      consumes:
+   *          - application/json
+   *      produces:
+   *          - application/json
+   *      parameters:
+   *          - in: path
+   *            name: tipoEvento
+   *            schema:
+   *               type: string
+   *            required: true
+   *      responses:
+   *          201:
+   *              description: Devuelve el evento creado
+   */
+  app.post('/eventos/:tipoEvento', async (req, res) => {
+    const headerApiKey = req.get('X-API-KEY')
+
+    if (!apiKeyIsValid(headerApiKey)) {
+      return res.status(401).json({
+        success: false,
+        error: 'API Key invalida'
+      })
     }
 
-    if (tipoSuscripcion === 'vip') {
-      return '0.0002'
+    const tipoEvento = req.params.tipoEvento
+
+    if (!esTipoEvento(tipoEvento)) {
+      return res.status(400).json({
+        success: false,
+        error: 'El tipo evento no es válido.'
+      })
     }
 
-    return '0'
+    try {
+      const evento = await db.eventos.add(tipoEvento)
+      registrarEventoDiario(evento)
+      registrarEventoPorHora(evento)
+
+      res.status(201).json({
+        success: true,
+        evento
+      })
+    } catch (error) {
+      internalError(res, error)
+    }
+  })
+
+  /**
+   * @openapi
+   * /eventos/diarios:
+   *    get:
+   *      description: Crea un evento del tipo indicado
+   *      consumes:
+   *          - application/json
+   *      produces:
+   *          - application/json
+   *      parameters:
+   *          - in: query
+   *            name: tipoEvento
+   *            schema:
+   *               type: string
+   *            required: false
+   *          - in: query
+   *            name: diasAtras
+   *            schema:
+   *               type: string
+   *            required: false
+   *      responses:
+   *          200:
+   *              description: Devuelve metricas de los eventos segun los parametros
+   */
+  app.get('/eventos/diarios', async (req, res) => {
+    const headerApiKey = req.get('X-API-KEY')
+
+    if (!apiKeyIsValid(headerApiKey)) {
+      return res.status(401).json({
+        success: false,
+        error: 'API Key invalida'
+      })
+    }
+
+    const tipoEvento = req.query.tipoEvento
+    let diasAtras = req.query.diasAtras
+
+    if (diasAtras === undefined) {
+      diasAtras = 7
+    }
+
+    if (tipoEvento !== undefined && !esTipoEvento(tipoEvento)) {
+      return res.status(400).json({
+        success: false,
+        error: 'El tipo evento no es válido.'
+      })
+    }
+
+    if (diasAtras < 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Debe indicar una cantidad de dias atras positiva.'
+      })
+    }
+
+    try {
+      const data = await db.eventos.getEventosDiarios(tipoEvento, diasAtras)
+      res.status(200).json({
+        success: true,
+        data
+      })
+    } catch (error) {
+      internalError(res, error)
+    }
+  })
+
+  /**
+   * @openapi
+   * /eventos/por_hora:
+   *    get:
+   *      description: Crea un evento del tipo indicado
+   *      consumes:
+   *          - application/json
+   *      produces:
+   *          - application/json
+   *      parameters:
+   *          - in: query
+   *            name: tipoEvento
+   *            schema:
+   *               type: string
+   *            required: false
+   *          - in: query
+   *            name: horasAtras
+   *            schema:
+   *               type: string
+   *            required: false
+   *      responses:
+   *          200:
+   *              description: Devuelve metricas de los eventos segun los parametros
+   */
+  app.get('/eventos/por_hora', async (req, res) => {
+    const headerApiKey = req.get('X-API-KEY')
+
+    if (!apiKeyIsValid(headerApiKey)) {
+      return res.status(401).json({
+        success: false,
+        error: 'API Key invalida'
+      })
+    }
+
+    const tipoEvento = req.query.tipoEvento
+    let horasAtras = req.query.horasAtras
+
+    if (horasAtras === undefined) {
+      horasAtras = 8
+    }
+
+    if (tipoEvento !== undefined && !esTipoEvento(tipoEvento)) {
+      return res.status(400).json({
+        success: false,
+        error: 'El tipo evento no es válido.'
+      })
+    }
+
+    if (horasAtras < 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Debe indicar una cantidad de horas atras positiva.'
+      })
+    }
+
+    try {
+      const data = await db.eventos.getEventosPorHora(tipoEvento, horasAtras)
+      res.status(200).json({
+        success: true,
+        data
+      })
+    } catch (error) {
+      internalError(res, error)
+    }
+  })
+
+  async function registrarEvento (tipoEvento) {
+    try {
+      const evento = await db.eventos.add(tipoEvento)
+      registrarEventoDiario(evento)
+      registrarEventoPorHora(evento)
+      return evento
+    } catch {
+      console.log('Ocurrió un error registrando el evento ' + tipoEvento)
+    }
   }
+
+  async function registrarEventoDiario (evento) {
+    try {
+      const eventoDiario = await db.eventos.getEventoDiario(evento)
+
+      if (eventoDiario === null) {
+        await db.eventos.addEventoDiario(evento)
+      }
+
+      return await db.eventos.increaseEventoDiario(evento)
+    } catch {
+      console.log('Ocurrió un error registrando el evento diario del evento con id ' + evento.id)
+    }
+  }
+
+  async function registrarEventoPorHora (evento) {
+    try {
+      const eventoPorHora = await db.eventos.getEventoPorHora(evento)
+
+      if (eventoPorHora === null) {
+        await db.eventos.addEventoPorHora(evento)
+      }
+
+      return await db.eventos.increaseEventoPorHora(evento)
+    } catch {
+      console.log('Ocurrió un error registrando el evento por hora del evento con id ' + evento.id)
+    }
+  }
+}
+
+function getAmountByTipoSuscripcion (tipoSuscripcion) {
+  if (tipoSuscripcion === 'premium') {
+    return '0.0001'
+  }
+
+  if (tipoSuscripcion === 'vip') {
+    return '0.0002'
+  }
+
+  return '0'
 }
 
 function internalError (res, error) {

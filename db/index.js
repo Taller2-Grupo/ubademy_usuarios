@@ -1,6 +1,6 @@
 const promise = require('bluebird')
 const pgPromise = require('pg-promise')
-const { Usuarios } = require('./repos')
+const { Usuarios, Eventos } = require('./repos')
 
 let connectionString = process.env.DATABASE_URL
 
@@ -18,6 +18,7 @@ const initOptions = {
     // Do not use 'require()' here, because this event occurs for every task and transaction being executed,
     // which should be as fast as possible.
     obj.usuarios = new Usuarios(obj, pgp)
+    obj.eventos = new Eventos(obj, pgp)
   }
 }
 
@@ -29,6 +30,12 @@ if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'test') {
   }
 }
 
-const db = pgp(connectionString)
+const cn = {
+  connectionString: connectionString,
+  poolSize: 3,
+  poolIdleTimeout: 10000
+}
+
+const db = pgp(cn)
 
 module.exports = { db, pgp }
