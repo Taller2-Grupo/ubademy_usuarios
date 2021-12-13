@@ -89,8 +89,6 @@ class EventosRepository {
     const fechaDesde = new Date()
     fechaDesde.setHours(fechaDesde.getHours() - horasAtras, 0, 0, 0)
 
-    console.log('Buscando desde ' + fechaDesde.toISOString())
-
     let query = 'SELECT * FROM eventos_por_hora WHERE "fecha" >= $1'
 
     if (tipoEvento !== undefined) {

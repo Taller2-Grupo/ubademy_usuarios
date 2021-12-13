@@ -816,7 +816,7 @@ describe('Post a /eventos/{tipoEvento}', () => {
       .expect(201)
   })
 
-  describe('Get a /eventos', () => {
+  describe('Get a /eventos/diarios', () => {
     test('devuelve 400 con tipoEvento inexistente.', async () => {
       process.env.API_KEY_ENABLED = true
       process.env.API_KEY = 'test'
@@ -871,6 +871,65 @@ describe('Post a /eventos/{tipoEvento}', () => {
 
       await api
         .get('/eventos/diarios')
+        .expect(200)
+    })
+  })
+
+  describe('Get a /eventos/por_hora', () => {
+    test('devuelve 400 con tipoEvento inexistente.', async () => {
+      process.env.API_KEY_ENABLED = true
+      process.env.API_KEY = 'test'
+
+      await api
+        .get('/eventos/por_hora?tipoEvento=EVENTO_INEXISTENTE')
+        .set('X-API-KEY', process.env.API_KEY)
+        .expect(400)
+    })
+
+    test('devuelve 400 con horasAtras negativo.', async () => {
+      process.env.API_KEY_ENABLED = true
+      process.env.API_KEY = 'test'
+
+      await api
+        .get('/eventos/por_hora?horasAtras=-1')
+        .set('X-API-KEY', process.env.API_KEY)
+        .expect(400)
+    })
+
+    test('devuelve 200 con tipoEvento existente.', async () => {
+      process.env.API_KEY_ENABLED = true
+      process.env.API_KEY = 'test'
+
+      await api
+        .get('/eventos/por_hora?tipoEvento=' + TipoEvento.USUARIO_CREADO)
+        .set('X-API-KEY', process.env.API_KEY)
+        .expect(200)
+    })
+
+    test('devuelve 200 sin query params.', async () => {
+      process.env.API_KEY_ENABLED = true
+      process.env.API_KEY = 'test'
+
+      await api
+        .get('/eventos/por_hora?tipoEvento=' + TipoEvento.USUARIO_CREADO)
+        .set('X-API-KEY', process.env.API_KEY)
+        .expect(200)
+    })
+
+    test('devuelve 401 sin api key.', async () => {
+      process.env.API_KEY_ENABLED = true
+      process.env.API_KEY = 'test'
+
+      await api
+        .get('/eventos/por_hora?tipoEvento=' + TipoEvento.USUARIO_CREADO)
+        .expect(401)
+    })
+
+    test('devuelve 200 con api key desactivada.', async () => {
+      process.env.API_KEY_ENABLED = false
+
+      await api
+        .get('/eventos/por_hora?tipoEvento=' + TipoEvento.USUARIO_CREADO)
         .expect(200)
     })
   })
