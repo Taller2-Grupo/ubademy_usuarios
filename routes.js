@@ -877,7 +877,7 @@ module.exports.setup = (app, db) => {
    *          200:
    *              description: Devuelve el usuario actualizado
    */
-  app.patch('/usuarios/ubicacion', (req, res) => {
+  app.patch('/usuarios/ubicacion', async (req, res) => {
     const headerApiKey = req.get('X-API-KEY')
 
     if (!apiKeyIsValid(headerApiKey)) {
@@ -896,20 +896,22 @@ module.exports.setup = (app, db) => {
       })
     }
 
-    db.usuarios.updateUbicacion(body.username, body.latitud, body.longitud)
-      .then(function (usuarioActualizado) {
-        res.json(usuarioActualizado)
+    try {
+      const data = await db.usuarios.updateUbicacion(body.username, body.latitud, body.longitud)
+      res.status(200).json({
+        success: true,
+        data
       })
-      .catch(function (error) {
-        internalError(res, error)
-      })
+    } catch (error) {
+      internalError(res, error)
+    }
   })
 
   async function registrarEvento (tipoEvento) {
     try {
       const evento = await db.eventos.add(tipoEvento)
-      registrarEventoDiario(evento)
-      registrarEventoPorHora(evento)
+      await registrarEventoDiario(evento)
+      await registrarEventoPorHora(evento)
       return evento
     } catch {
       console.log('Ocurrió un error registrando el evento ' + tipoEvento)

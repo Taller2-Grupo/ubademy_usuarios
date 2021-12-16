@@ -933,6 +933,51 @@ describe('Post a /eventos/{tipoEvento}', () => {
         .expect(200)
     })
   })
+
+  describe('Patch a /usuarios/ubicacion', () => {
+    test('devuelve 400 sin body.', async () => {
+      process.env.API_KEY_ENABLED = true
+      process.env.API_KEY = 'test'
+
+      await api
+        .patch('/usuarios/ubicacion')
+        .set('X-API-KEY', process.env.API_KEY)
+        .expect(400)
+    })
+
+    test('devuelve 200 con body completo.', async () => {
+      process.env.API_KEY_ENABLED = true
+      process.env.API_KEY = 'test'
+
+      const username = await crearUsuario()
+
+      await api
+        .patch('/usuarios/ubicacion')
+        .set('X-API-KEY', process.env.API_KEY)
+        .send({
+          username: username,
+          latitud: 40.5,
+          longitud: -30
+        })
+        .expect(200)
+    })
+
+    test('devuelve 401 sin api key.', async () => {
+      process.env.API_KEY_ENABLED = true
+      process.env.API_KEY = 'test'
+
+      const username = await crearUsuario()
+
+      await api
+        .patch('/usuarios/ubicacion')
+        .send({
+          username: username,
+          latitud: 40.5,
+          longitud: -30
+        })
+        .expect(401)
+    })
+  })
 })
 
 afterAll(() => {
