@@ -27,6 +27,10 @@ class UsuariosRepository {
     return this.db.one(sql.update, [username, nombre, apellido])
   }
 
+  async updateUbicacion (username, latitud, longitud) {
+    return this.db.one('UPDATE usuarios SET "latitud" = $2, "longitud" = $3 WHERE "username" = $1 RETURNING *', [username, latitud, longitud])
+  }
+
   async addDevice (username, device) {
     return this.db.one(sql.add_device, [username, device])
   }

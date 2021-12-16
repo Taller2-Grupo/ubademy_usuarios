@@ -846,6 +846,65 @@ module.exports.setup = (app, db) => {
     }
   })
 
+  /**
+   * @openapi
+   * /usuarios/ubicacion:
+   *    patch:
+   *      description: Actualiza la ubicación de un usuario
+   *      consumes:
+   *          - application/json
+   *      produces:
+   *          - application/json
+   *      requestBody:
+   *          description: Usuario a actualizar
+   *          required: true
+   *          content:
+   *            application/json:
+   *                schema:
+   *                    type: object
+   *                    required:
+   *                        - username
+   *                        - latitud
+   *                        - longitud
+   *                    properties:
+   *                        username:
+   *                            type: string
+   *                        latitud:
+   *                            type: number
+   *                        longitud:
+   *                            type: number
+   *      responses:
+   *          200:
+   *              description: Devuelve el usuario actualizado
+   */
+  app.patch('/usuarios/ubicacion', (req, res) => {
+    const headerApiKey = req.get('X-API-KEY')
+
+    if (!apiKeyIsValid(headerApiKey)) {
+      return res.status(401).json({
+        success: false,
+        error: 'API Key invalida'
+      })
+    }
+
+    const body = req.body
+
+    if (!body.username || !body.latitud || !body.longitud) {
+      return res.status(400).json({
+        success: false,
+        error: 'Body incompleto.'
+      })
+    }
+
+    db.usuarios.updateUbicacion(body.username, body.latitud, body.longitud)
+      .then(function (usuarioActualizado) {
+        res.json(usuarioActualizado)
+      })
+      .catch(function (error) {
+        internalError(res, error)
+      })
+  })
+
   async function registrarEvento (tipoEvento) {
     try {
       const evento = await db.eventos.add(tipoEvento)
