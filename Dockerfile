@@ -1,4 +1,4 @@
-FROM python:3.8
+FROM node:12.22.7
 
 # Install Heroku GPG dependencies
 RUN apt-get install -y gpg apt-transport-https gpg-agent curl ca-certificates
