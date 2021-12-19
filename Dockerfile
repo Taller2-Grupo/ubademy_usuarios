@@ -22,7 +22,7 @@ WORKDIR /app
 # ADD monitoring/ monitoring/
 ADD . .
 
-# COPY heroku/heroku-entrypoint.sh requirements.txt alembic.ini ./
+COPY heroku/heroku-entrypoint.sh ./
 
 # Install app related dependencies
 
