@@ -81,6 +81,8 @@ module.exports.setup = (app, db) => {
 
       await registrarEvento(TipoEvento.USUARIO_CREADO)
 
+      intentarCrearBilletera(db, body.username)
+
       res.status(201).json({
         success: true,
         data
@@ -945,6 +947,19 @@ module.exports.setup = (app, db) => {
       console.log('Ocurrió un error registrando el evento por hora del evento con id ' + evento.id)
     }
   }
+}
+
+function intentarCrearBilletera (db, username) {
+  try {
+    axios
+      .post('https://ubademy-smart-contract.herokuapp.com/wallet', {})
+      .then(async (resp) => {
+        try {
+          await db.usuarios.addBilletera(username, resp.data.address, resp.data.privateKey)
+        } catch { }
+      })
+      .catch()
+  } catch { }
 }
 
 function getAmountByTipoSuscripcion (tipoSuscripcion) {
