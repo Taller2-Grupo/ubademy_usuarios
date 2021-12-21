@@ -430,6 +430,10 @@ describe('Post a /usuarios/{username}/billetera', () => {
     process.env.API_KEY_ENABLED = true
     process.env.API_KEY = 'test'
 
+    axios.post.mockImplementation(() => Promise.resolve({
+      data: {}
+    }))
+
     const newUsername = await crearUsuario()
 
     axios.post.mockImplementation(() => Promise.resolve({
@@ -451,8 +455,6 @@ describe('Post a /usuarios/{username}/billetera', () => {
     process.env.API_KEY_ENABLED = true
     process.env.API_KEY = 'test'
 
-    const newUsername = await crearUsuario()
-
     axios.post.mockImplementation(() => Promise.resolve({
       data: {
         address: 'address.test',
@@ -460,12 +462,7 @@ describe('Post a /usuarios/{username}/billetera', () => {
       }
     }))
 
-    await api
-      .post('/usuarios/' + newUsername + '/billetera')
-      .set('X-API-KEY', process.env.API_KEY)
-      .set('Content-Type', 'application/json')
-      .set('Accept', 'application/json')
-      .expect(201)
+    const newUsername = await crearUsuario()
 
     await api
       .post('/usuarios/' + newUsername + '/billetera')
@@ -497,6 +494,10 @@ describe('Post a /usuarios/{username}/billetera', () => {
 
   test('devuelve 201 con api key desactivada.', async () => {
     process.env.API_KEY_ENABLED = false
+
+    axios.post.mockImplementation(() => Promise.resolve({
+      data: {}
+    }))
 
     const newUsername = await crearUsuario()
 
