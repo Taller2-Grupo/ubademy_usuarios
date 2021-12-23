@@ -23,6 +23,27 @@ class UsuariosRepository {
     return this.db.any('SELECT * FROM usuarios')
   }
 
+  async getByFilter (queryParams) {
+    const filtroEstado = queryParams.estado
+    const filtroNombre = queryParams.nombre
+    const filtroApellido = queryParams.apellido
+    let sqlQuery = 'SELECT * FROM usuarios WHERE 1=1'
+
+    if (filtroEstado) {
+      sqlQuery += ' AND estado = $1'
+    }
+
+    if (filtroNombre) {
+      sqlQuery += ' AND "nombre" LIKE $2'
+    }
+
+    if (filtroApellido) {
+      sqlQuery += ' AND apellido LIKE $3'
+    }
+
+    return this.db.any(sqlQuery, [filtroEstado, '%' + filtroNombre + '%', '%' + filtroApellido + '%'])
+  }
+
   async update (username, nombre, apellido) {
     return this.db.one(sql.update, [username, nombre, apellido])
   }
