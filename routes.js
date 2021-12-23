@@ -144,11 +144,46 @@ module.exports.setup = (app, db) => {
    * /usuarios:
    *   get:
    *     description: Obtiene todos los usuarios
+   *     parameters:
+   *         - in: query
+   *           name: estado
+   *           schema:
+   *              type: string
+   *           required: false
+   *         - in: query
+   *           name: nombre
+   *           schema:
+   *              type: string
+   *           required: false
+   *         - in: query
+   *           name: apellido
+   *           schema:
+   *              type: string
+   *           required: false
    *     responses:
    *       200:
    *         description: Devuelve todos los usuarios
    */
-  GET('/usuarios', () => db.usuarios.all())
+  app.get('/usuarios', async (req, res) => {
+    const headerApiKey = req.get('X-API-KEY')
+
+    if (!apiKeyIsValid(headerApiKey)) {
+      return res.status(401).json({
+        success: false,
+        error: 'API Key invalida'
+      })
+    }
+
+    try {
+      const data = await db.usuarios.getByFilter(req.query)
+      res.status(200).json({
+        success: true,
+        data
+      })
+    } catch (error) {
+      internalError(res, error)
+    }
+  })
 
   /**
    * @openapi
@@ -208,30 +243,6 @@ module.exports.setup = (app, db) => {
         internalError(res, error)
       })
   })
-
-  // Generic GET handler;
-  function GET (url, handler) {
-    app.get(url, async (req, res) => {
-      const headerApiKey = req.get('X-API-KEY')
-
-      if (!apiKeyIsValid(headerApiKey)) {
-        return res.status(401).json({
-          success: false,
-          error: 'API Key invalida'
-        })
-      }
-
-      try {
-        const data = await handler(req)
-        res.status(200).json({
-          success: true,
-          data
-        })
-      } catch (error) {
-        internalError(res, error)
-      }
-    })
-  }
 
   /**
    * @openapi
